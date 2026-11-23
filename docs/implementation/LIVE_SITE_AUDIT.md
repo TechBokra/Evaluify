@@ -29,3 +29,9 @@ Site checked: https://evaluify.vercel.app/#/ (React hash-router demo).
 - Add automated browser E2E for teacher → student → review in a controlled local environment.
 - Audit legacy About, Products, Why Evaluify, Integrations, Privacy and Terms pages for unsupported claims and inaccurate current capabilities.
 - Keep the existing GitHub CI test/build gate and record exact coverage; do not call the app production-ready.
+
+## Deployment verification after public-copy corrections
+- GitHub CI passed on `main` for the homepage, Customers and Pricing corrections, followed by About, Products, Why and Integrations corrections.
+- **Vercel was not manually deployed or reconfigured.** A new unauthenticated browser session and fresh live scrape still displayed the old H1 **"Redefining Assessment Integrity"**, rather than the committed H1 **"From Assessment to Better Teaching"**.
+- Therefore the public-site corrections are **committed and build-verified but not confirmed deployed**. The website URL is currently not evidence that the latest `main` version is live.
+- Check Vercel project's connected GitHub repository/branch and latest build SHA in the Vercel dashboard before requesting a deployment. Do not infer that it points to `telshafey/Evaluify` merely from the domain.
