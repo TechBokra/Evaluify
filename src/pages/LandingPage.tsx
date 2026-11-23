@@ -1,4 +1,7 @@
 import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { UserRole } from '../types';
 import { SparklesIcon, DesktopIcon, MicIcon, LightbulbIcon, ShieldCheckIcon, Wand2Icon } from '../components/icons';
 // FIX: Update import path for useLanguage and useTheme hooks to use the centralized AuthContext.
 import { useLanguage, useTheme } from '../contexts/AuthContext';
@@ -7,88 +10,78 @@ import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 const getTranslations = (platformName: string) => ({
     en: {
-        heroTitle: "Redefining Assessment Integrity",
-        heroSubtitle: `${platformName} combines cutting-edge AI with a user-centric design to deliver a secure, fair, and insightful online assessment experience.`,
-        getStarted: "Get Started for Free",
-        requestDemo: "Request a Demo",
-        trustedBy: "TRUSTED BY LEADING INSTITUTIONS",
-
-        featuresTitle: "A Suite of Tools for Modern Assessment",
-        featuresSubtitle: "Our multi-layered approach ensures every assessment is fair, secure, and insightful.",
-        
-        smartProctoring: "Smart AI Proctoring",
-        smartProctoringDesc: "Gemini-powered analysis of visual, audio, and digital behavior to ensure exam integrity.",
-        dynamicQuestions: "Dynamic Question Generation",
-        dynamicQuestionsDesc: "Create unique exams for each student in real-time to eliminate answer sharing.",
-        secureBrowser: "Secure Exam Browser",
-        secureBrowserDesc: "Lock down the testing environment on desktop and mobile for high-stakes exams.",
-        adaptiveTesting: "Adaptive Testing",
-        adaptiveTestingDesc: "AI tailors question difficulty to each student for a more precise, efficient assessment.",
-        speechAnalysis: "Advanced Speech Analysis",
-        speechAnalysisDesc: "Evaluate language proficiency and presentation skills with AI-driven voice analysis.",
-        personalizedGuides: "Personalized Study Plans",
-        personalizedGuidesDesc: "AI generates custom study guides based on performance to help learners improve.",
-
-        howItWorksTitle: "Simple Steps to Secure Assessment",
-        step1Title: "Create or Generate",
-        step1Desc: "Build assessments manually, import from our bank, or let AI generate a full exam in minutes.",
-        step2Title: "Invite & Proctor",
-        step2Desc: "Securely invite candidates and monitor exams with our multi-layered AI proctoring.",
-        step3Title: "Analyze & Act",
-        step3Desc: "Get instant results, deep performance analytics, and actionable AI-powered insights.",
-
-        testimonialsTitle: "What Our Users Say",
-        testimonial1: `"${platformName} has transformed how we conduct final exams. The AI proctoring is incredibly reliable, and our academic integrity has never been stronger."`,
-        testimonial1Name: "Dr. Anya Sharma",
-        testimonial1Role: "Dean of Engineering, Tech University",
-        testimonial2: `"The efficiency is unmatched. We reduced our assessment creation time by 70% using the AI generation tools. It's a game-changer for our corporate training programs."`,
-        testimonial2Name: "David Chen",
-        testimonial2Role: "Head of L&D, Innovate Corp",
-
-        finalCtaTitle: "Ready to Elevate Your Assessments?",
-        finalCtaDesc: "Join the growing number of institutions transforming their evaluation process.",
+        heroTitle: "From Assessment to Better Teaching",
+        heroSubtitle: `${platformName} is an early-stage educational assessment prototype for teachers and tutoring centers in Egypt. Explore a simulated assessment workflow, review answers and discover what needs attention.`,
+        getStarted: "Explore Teacher Demo",
+        requestDemo: "See How It Works",
+        trustedBy: "EARLY-STAGE PROJECT · NOT YET LAUNCHED",
+        featuresTitle: "What We Are Building",
+        featuresSubtitle: "Core assessment workflows are being tested with synthetic data. The features below are prototype capabilities or planned workflows, not production services.",
+        smartProctoring: "Teacher-Reviewed Evaluation",
+        smartProctoringDesc: "Objective questions use deterministic scoring; written answers await a teacher's decision.",
+        dynamicQuestions: "Question Bank and Drafts",
+        dynamicQuestionsDesc: "Create and import question drafts, check their content source, and approve them before use.",
+        secureBrowser: "Versioned Assessments",
+        secureBrowserDesc: "Publish a snapshot of approved questions so later edits do not silently change assigned tests.",
+        adaptiveTesting: "Assignments and Attempts",
+        adaptiveTestingDesc: "Try a synthetic student group, an assignment window and per-student attempt limits in the demo.",
+        speechAnalysis: "Evidence-Aware Analysis",
+        speechAnalysisDesc: "Explore how verified results could reveal learning gaps without overstating small samples.",
+        personalizedGuides: "Teacher-Led Improvement",
+        personalizedGuidesDesc: "The proposed loop connects results to teacher interventions and follow-up assessments.",
+        howItWorksTitle: "The Assessment-to-Action Workflow",
+        step1Title: "Create",
+        step1Desc: "Prepare questions and publish a teacher-approved assessment version.",
+        step2Title: "Assign & Respond",
+        step2Desc: "Assign a test to a synthetic student group and collect answers.",
+        step3Title: "Evaluate & Improve",
+        step3Desc: "Review written answers, analyze finalized results and plan the next learning intervention.",
+        testimonialsTitle: "What Is Still Being Validated",
+        testimonial1: "Teacher interviews and limited pilots will determine which assessment tasks genuinely save time.",
+        testimonial1Name: "Research priority",
+        testimonial1Role: "No customer testimonials or performance claims yet",
+        testimonial2: "AI quality, teacher review time, privacy safeguards and paid demand must be tested before launch.",
+        testimonial2Name: "Product decision gate",
+        testimonial2Role: "No production AI or real learner records connected",
+        finalCtaTitle: "Explore the Prototype",
+        finalCtaDesc: "This demo is for product development only. Use the role switcher and synthetic content; no live accounts or paid plans are offered.",
     },
     ar: {
-        heroTitle: "إعادة تعريف نزاهة التقييمات",
-        heroSubtitle: `تدمج منصة ${platformName} بين أحدث تقنيات الذكاء الاصطناعي والتصميم الذي يركز على المستخدم لتقديم تجربة تقييمات إلكترونية آمنة، عادلة، وثرية بالرؤى.`,
-        getStarted: "ابدأ مجانًا",
-        requestDemo: "اطلب عرضًا تجريبيًا",
-        trustedBy: "موثوق بها من قبل المؤسسات الرائدة",
-
-        featuresTitle: "مجموعة أدوات للتقييم الحديث",
-        featuresSubtitle: "نهجنا متعدد الطبقات يضمن أن كل تقييم يتسم بالعدالة والأمان والرؤى القيمة.",
-        
-        smartProctoring: "المراقبة الذكية بالـ AI",
-        smartProctoringDesc: "تحليل مدعوم بـ Gemini للسلوك البصري والصوتي والرقمي لضمان نزاهة الاختبار.",
-        dynamicQuestions: "إنشاء أسئلة ديناميكي",
-        dynamicQuestionsDesc: "إنشاء اختبارات فريدة لكل طالب في الوقت الفعلي للقضاء على مشاركة الإجابات.",
-        secureBrowser: "متصفح الاختبار الآمن",
-        secureBrowserDesc: "تأمين بيئة الاختبار على أجهزة الكمبيوتر والهواتف المحمولة للاختبارات عالية الأهمية.",
-        adaptiveTesting: "الاختبار التكيفي",
-        adaptiveTestingDesc: "يقوم الذكاء الاصطناعي بتكييف صعوبة الأسئلة لكل طالب لتقييم أكثر دقة وكفاءة.",
-        speechAnalysis: "تحليل متقدم للكلام",
-        speechAnalysisDesc: "تقييم الكفاءة اللغوية ومهارات العرض من خلال تحليل صوتي مدعوم بالـ AI.",
-        personalizedGuides: "خطط دراسية مخصصة",
-        personalizedGuidesDesc: "يُنشئ الـ AI خططًا دراسية مخصصة بناءً على الأداء لمساعدة المتعلمين على التحسن.",
-
-        howItWorksTitle: "خطوات بسيطة لتقييم آمن",
-        step1Title: "أنشئ أو استورد",
-        step1Desc: "أنشئ التقييمات يدويًا، استوردها من بنك الأسئلة، أو دع الـ AI يُنشئ اختبارًا كاملاً في دقائق.",
-        step2Title: "ادعُ وراقب",
-        step2Desc: "ادعُ المرشحين بأمان وراقب الاختبارات من خلال المراقبة الذكية متعددة الطبقات.",
-        step3Title: "حلّل النتائج",
-        step3Desc: "احصل على نتائج فورية، تحليلات أداء عميقة، ورؤى قابلة للتنفيذ مدعومة بالـ AI.",
-
-        testimonialsTitle: "آراء عملائنا",
-        testimonial1: `لقد غيرت منصة ${platformName} طريقة إجرائنا للامتحانات النهائية. المراقبة بالذكاء الاصطناعي موثوقة بشكل لا يصدق، ونزاهتنا الأكاديمية لم تكن بهذه القوة من قبل.`,
-        testimonial1Name: "د. علياء منصور",
-        testimonial1Role: "عميدة كلية الهندسة، جامعة التكنولوجيا",
-        testimonial2: `الكفاءة لا مثيل لها. لقد قللنا وقت إنشاء التقييم بنسبة 70٪ باستخدام أدوات الإنشاء بالذكاء الاصطناعي. إنها نقلة نوعية لبرامج التدريب في شركتنا.`,
-        testimonial2Name: "أحمد القحطاني",
-        testimonial2Role: "مدير التدريب والتطوير، Innovate Corp",
-        
-        finalCtaTitle: "هل أنت مستعد للارتقاء بتقييماتك؟",
-        finalCtaDesc: "انضم إلى العدد المتزايد من المؤسسات التي تطور عمليات التقييم لديها.",
+        heroTitle: "من التقييم إلى تحسين التعليم",
+        heroSubtitle: `${platformName} نموذج أولي لمنصة تقييمات تعليمية قيد التطوير، يستهدف المدرسين ومراكز الدروس في مصر. استكشف رحلة الاختبار والتصحيح والمتابعة باستخدام بيانات تجريبية فقط.`,
+        getStarted: "جرّب واجهة المدرس",
+        requestDemo: "تعرّف على مراحل العمل",
+        trustedBy: "مشروع تحت الإنشاء · لم يُطلق تجاريًا بعد",
+        featuresTitle: "ماذا نبني في Evaluify؟",
+        featuresSubtitle: "نجرب وظائف التقييم الأساسية ببيانات اصطناعية. ما يلي نموذج أولي أو وظائف مخطط لها، وليس خدمات إنتاجية جاهزة.",
+        smartProctoring: "تصحيح بمراجعة المدرس",
+        smartProctoringDesc: "تصحيح حتمي للأسئلة الموضوعية، ومراجعة بشرية للإجابات المقالية قبل اعتماد النتيجة.",
+        dynamicQuestions: "بنك أسئلة ومسودات",
+        dynamicQuestionsDesc: "إنشاء الأسئلة واستيرادها ومراجعة مصدرها، ثم اعتمادها قبل استخدامها.",
+        secureBrowser: "نسخ اختبارات ثابتة",
+        secureBrowserDesc: "نشر نسخة معتمدة لا تتغير عند تعديل السؤال الأصلي في بنك الأسئلة.",
+        adaptiveTesting: "تكليفات ومحاولات",
+        adaptiveTestingDesc: "تجربة مجموعة طلاب افتراضية، وفترة إتاحة للاختبار، وحدود للمحاولات.",
+        speechAnalysis: "تحليل يستند إلى الأدلة",
+        speechAnalysisDesc: "قياس المهارات من النتائج النهائية فقط، مع إظهار عدم كفاية العينة عند الحاجة.",
+        personalizedGuides: "تحسين يقوده المدرس",
+        personalizedGuidesDesc: "ربط نتائج التقييم بخطوات تدخل تعليمي واختبار متابعة قابل للمقارنة.",
+        howItWorksTitle: "رحلة التقييم إلى الإجراء",
+        step1Title: "أنشئ",
+        step1Desc: "أعد أسئلتك وانشر نسخة اختبار معتمدة.",
+        step2Title: "كلّف وأجب",
+        step2Desc: "كلّف مجموعة تجريبية واجمع الإجابات.",
+        step3Title: "صحّح وحسّن",
+        step3Desc: "راجع الإجابات الكتابية وحلّل النتائج النهائية وحدد الخطوة التعليمية التالية.",
+        testimonialsTitle: "ما الذي ما زلنا نختبره؟",
+        testimonial1: "المقابلات مع المدرسين والتجارب المحدودة ستحدد المهام التي توفّر وقتًا بالفعل.",
+        testimonial1Name: "أولوية البحث",
+        testimonial1Role: "لا توجد شهادات عملاء أو نتائج تشغيل فعلية بعد",
+        testimonial2: "يجب قياس جودة AI ووقت مراجعة المدرس وحماية البيانات والرغبة في الدفع قبل الإطلاق.",
+        testimonial2Name: "بوابة قرار المنتج",
+        testimonial2Role: "لا يوجد AI إنتاجي أو بيانات طلاب حقيقية متصلة",
+        finalCtaTitle: "استكشف النموذج الأولي",
+        finalCtaDesc: "هذه النسخة للتطوير فقط. استخدم الأدوار والبيانات التجريبية؛ لا توجد حسابات إنتاجية أو اشتراكات مدفوعة.",
     }
 });
 
@@ -117,7 +110,11 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string 
 const LandingPage: React.FC = () => {
     const { lang } = useLanguage();
     const { theme } = useTheme();
+    const { login } = useAuth();
+    const navigate = useNavigate();
     const t = getTranslations(theme.platformName)[lang];
+    const openDemo = () => { login(UserRole.Teacher); navigate('/teacher/assignments'); };
+    const jumpToWorkflow = () => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
 
     return (
         <SitePageLayout>
@@ -132,10 +129,10 @@ const LandingPage: React.FC = () => {
                          {t.heroSubtitle}
                     </p>
                     <div className="mt-8 flex justify-center gap-4">
-                        <button className="bg-primary-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-primary-600 transition-transform transform hover:scale-105 shadow-lg">
+                        <button type="button" onClick={openDemo} className="bg-primary-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-primary-600 transition-transform transform hover:scale-105 shadow-lg">
                             {t.getStarted}
                         </button>
-                         <button className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-8 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700">
+                         <button type="button" onClick={jumpToWorkflow} className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-8 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700">
                             {t.requestDemo}
                         </button>
                     </div>
@@ -146,13 +143,7 @@ const LandingPage: React.FC = () => {
             <div className="py-8 bg-slate-50 dark:bg-slate-950/50">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <p className="text-center text-sm font-semibold text-slate-500 dark:text-slate-400 tracking-widest">{t.trustedBy}</p>
-                    <div className="mt-4 flex justify-center items-center gap-x-8 md:gap-x-12 opacity-60 grayscale">
-                        {/* Placeholder logos */}
-                        <span>Tech University</span>
-                        <span>Innovate Corp</span>
-                        <span>Global Certs</span>
-                        <span>Edu Alliance</span>
-                    </div>
+
                 </div>
             </div>
 
@@ -213,7 +204,7 @@ const LandingPage: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
                             <div className="bg-slate-50 dark:bg-slate-950/50 p-8 rounded-xl">
-                                <p className="text-slate-700 dark:text-slate-300 italic">"{t.testimonial1}"</p>
+                                <p className="text-slate-700 dark:text-slate-300 italic">{t.testimonial1}</p>
                                 <div className="mt-4 font-semibold">{t.testimonial1Name}</div>
                                 <div className="text-sm text-slate-500">{t.testimonial1Role}</div>
                             </div>
@@ -233,7 +224,7 @@ const LandingPage: React.FC = () => {
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-50">{t.finalCtaTitle}</h2>
                     <p className="mt-2 text-slate-600 dark:text-slate-400">{t.finalCtaDesc}</p>
                      <div className="mt-6">
-                        <button className="bg-primary-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-primary-600 transition-transform transform hover:scale-105 shadow-lg">
+                        <button type="button" onClick={openDemo} className="bg-primary-500 text-white font-semibold px-8 py-3 rounded-lg hover:bg-primary-600 transition-transform transform hover:scale-105 shadow-lg">
                             {t.getStarted}
                         </button>
                     </div>
