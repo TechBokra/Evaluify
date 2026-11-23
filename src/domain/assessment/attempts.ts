@@ -1,111 +1,94 @@
-import type { Exam, ExamResult, ProctoringEvent, StudentAnswer } from '../../types.ts';
-import { scoreAssessment } from './scoring.ts';
+import type { Answer, Exam, StudentAnswer } from '../../types.ts';
+import { scoreAssessment, type AssessmentScore } from './scoring.ts';
 
-/** Local-only attempt service. Final authorization and persistence require a trusted backend. */
-export interface SubmitAttemptCommand {
-  attemptId: string;
-  exam: Exam;
+/**
+ * Local prototype submission contract. This is deliberately NOT an authorization layer:
+ * trusted tenant/student authorization and durable storage remain future backend work.
+ */
+export interface AttemptSubmission {
+  submissionKey: string;
   userId: string;
   userName: string;
-  answers: StudentAnswer;
-  proctoringEvents?: ProctoringEvent[];
+  answers: Readonly<StudentAnswer>;
 }
-
-export interface AttemptRecord {
-  readonly key: string;
-  readonly answerFingerprint: string;
-  readonly result: ExamResult;
-  readonly examSnapshot: Exam;
+export interface SubmittedAttempt {
+  id: string;
+  submissionKey: string;
+  examId: string;
+  userId: string;
+  userName: string;
+  submittedAt: string;
+  answers: StudentAnswer;
+  examSnapshot: Exam;
+  grading: AssessmentScore;
 }
 
 export interface AttemptRepository {
-  getByKey(key: string): AttemptRecord | undefined;
-  getByResultId(resultId: string): AttemptRecord | undefined;
-  insert(record: AttemptRecord): void;
+  find(examId: string, userId: string, submissionKey: string): SubmittedAttempt | undefined;
+  findById(id: string): SubmittedAttempt | undefined;
+  save(attempt: SubmittedAttempt): void;
 }
 
 const clone = <T>(value: T): T => structuredClone(value);
+const scopedKey = (examId: string, userId: string, submissionKey: string) =>
+  JSON.stringify([examId, userId, submissionKey]);
 
-export class MemoryAttemptRepository implements AttemptRepository {
-  private readonly byKey = new Map<string, AttemptRecord>();
-  private readonly byResultId = new Map<string, AttemptRecord>();
-
-  getByKey(key: string): AttemptRecord | undefined {
-    const found = this.byKey.get(key);
-    return found && clone(found);
-  }
-
-  getByResultId(resultId: string): AttemptRecord | undefined {
-    const found = this.byResultId.get(resultId);
-    return found && clone(found);
-  }
-
-  insert(record: AttemptRecord): void {
-    if (this.byKey.has(record.key) || this.byResultId.has(record.result.id)) {
-      throw new Error('Attempt already exists');
-    }
-    const copy = clone(record);
-    this.byKey.set(copy.key, copy);
-    this.byResultId.set(copy.result.id, copy);
-  }
-}
-
-export interface AttemptServiceOptions {
-  now?: () => Date;
-  newId?: () => string;
-}
-
-/** Sorted question keys make retries independent of object property insertion order. */
-const fingerprint = (answers: Readonly<StudentAnswer>): string =>
-  JSON.stringify(Object.keys(answers).sort().map(id => [id, answers[id]]));
-
-export function createAttemptService(
-  repository: AttemptRepository,
-  options: AttemptServiceOptions = {},
-) {
-  const now = options.now ?? (() => new Date());
-  const newId = options.newId ?? (() => crypto.randomUUID());
-
+/** Ephemeral in-memory adapter for single-session demonstrations only. */
+export function createInMemoryAttemptRepository(): AttemptRepository {
+  const byScope = new Map<string, SubmittedAttempt>();
+  const byId = new Map<string, SubmittedAttempt>();
   return {
-    submit(command: SubmitAttemptCommand): AttemptRecord {
-      const { attemptId, exam, userId, userName, answers, proctoringEvents = [] } = command;
-      if (!attemptId.trim() || !exam.id.trim() || !userId.trim() || !userName.trim()) {
-        throw new Error('Attempt, exam, and student identity are required');
-      }
-      const key = JSON.stringify([exam.id, userId, attemptId]);
-      const answerFingerprint = fingerprint(answers);
-      const previous = repository.getByKey(key);
-      if (previous) {
-        if (previous.answerFingerprint !== answerFingerprint) {
-          throw new Error('Attempt was already submitted with different answers');
-        }
-        return previous;
-      }
-
-      const examSnapshot = clone(exam);
-      const frozenAnswers = clone(answers);
-      const evaluation = scoreAssessment(examSnapshot.questions, frozenAnswers);
-      const result: ExamResult = {
-        id: 'res-' + newId(),
-        examId: examSnapshot.id,
-        examTitle: examSnapshot.title,
-        userId,
-        userName,
-        submittedAt: now(),
-        score: evaluation.awardedPoints,
-        totalPoints: evaluation.totalPoints,
-        answers: frozenAnswers,
-        proctoringEvents: clone(proctoringEvents),
-        gradingStatus: evaluation.status,
-        pendingReviewPoints: evaluation.pendingReviewPoints,
-        itemScores: evaluation.items,
-      };
-      const record: AttemptRecord = { key, answerFingerprint, result, examSnapshot };
-      repository.insert(record);
-      return clone(record);
+    find(examId, userId, submissionKey) {
+      const found = byScope.get(scopedKey(examId, userId, submissionKey));
+      return found ? clone(found) : undefined;
     },
-    findByResultId(resultId: string): AttemptRecord | undefined {
-      return repository.getByResultId(resultId);
+    findById(id) {
+      const found = byId.get(id);
+      return found ? clone(found) : undefined;
+    },
+    save(attempt) {
+      const key = scopedKey(attempt.examId, attempt.userId, attempt.submissionKey);
+      if (byScope.has(key) || byId.has(attempt.id)) {
+        throw new Error('Attempt was already submitted');
+      }
+      const saved = clone(attempt);
+      byScope.set(key, saved);
+      byId.set(saved.id, saved);
     },
   };
+}
+
+/**
+ * First successful submit for (exam, student, submissionKey) wins.
+ * Retrying that key returns the original frozen-in-time answers and evaluation.
+ * No client-supplied score is accepted.
+ */
+export function submitAssessmentAttempt(
+  exam: Readonly<Exam>,
+  submission: AttemptSubmission,
+  repository: AttemptRepository,
+  options: { now?: () => Date; newId?: () => string } = {},
+): SubmittedAttempt {
+  if (!exam.id.trim() || !submission.userId.trim() || !submission.submissionKey.trim()) {
+    throw new Error('Missing submission identity');
+  }
+  const previous = repository.find(exam.id, submission.userId, submission.submissionKey);
+  if (previous) return previous;
+
+  const examSnapshot = clone(exam);
+  const answers = clone(submission.answers);
+  const grading = scoreAssessment(examSnapshot.questions, answers);
+  const attempt: SubmittedAttempt = {
+    id: (options.newId ?? (() => crypto.randomUUID()))(),
+    submissionKey: submission.submissionKey,
+    examId: exam.id,
+    userId: submission.userId,
+    userName: submission.userName,
+    submittedAt: (options.now ?? (() => new Date()))().toISOString(),
+    answers,
+    examSnapshot,
+    grading,
+  };
+  repository.save(attempt);
+  return clone(attempt);
 }

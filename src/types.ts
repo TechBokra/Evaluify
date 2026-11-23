@@ -81,7 +81,20 @@ export interface ProctoringEvent {
     details?: string;
 }
 
+export type GradingStatus = 'final' | 'needs-review' | 'unverified-demo';
+
 export interface ExamResult {
+    /** Missing status must be treated as unverified legacy mock data. */
+    gradingStatus?: GradingStatus;
+    /** Only automatically awarded points for a result awaiting human review. */
+    pendingReviewPoints?: number;
+    /** Per-question outcomes calculated by the deterministic assessment engine. */
+    itemScores?: {
+      questionId: string;
+      status: 'correct' | 'incorrect' | 'unanswered' | 'needs-review';
+      awardedPoints: number;
+      maxPoints: number;
+    }[];
     id: string;
     examId: string;
     examTitle: string;
