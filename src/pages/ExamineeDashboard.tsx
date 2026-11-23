@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import DashboardLayout from '../components/DashboardLayout';
 import useNavLinks from '../hooks/useNavLinks';
 // FIX: Update import path for useLanguage
-import { useLanguage } from '../contexts/AuthContext';
+import { useAuth, useLanguage } from '../contexts/AuthContext';
 import EmptyState from '../components/EmptyState';
 import { getDisplayScore, getDisplayPercentage, getVerifiedPercentage } from '../domain/assessment/resultPresentation';
 
@@ -46,24 +46,37 @@ const ExamineeDashboard = () => {
   const navigate = useNavigate();
   const navLinks = useNavLinks();
   const { lang } = useLanguage();
+  const { user } = useAuth();
+  const userId = user?.id;
   const t = translations[lang];
 
   useEffect(() => {
+    let active = true;
+    if (!userId) {
+      setAvailableExams([]);
+      setUpcomingExams([]);
+      setCompletedResults([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getExamineeDashboardData('current-user-id');
+        const data = await getExamineeDashboardData(userId);
+        if (!active) return;
         setAvailableExams(data.availableExams);
         setUpcomingExams(data.upcomingExams);
         setCompletedResults(data.completedResults);
       } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
+        if (active) console.error("Failed to fetch dashboard data:", error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    void fetchData();
+    return () => { active = false; };
+  }, [userId]);
 
   if (loading) {
     return (

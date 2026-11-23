@@ -4,7 +4,7 @@ import { getExamineeResults } from '../services/mockApi';
 import { ExamResult } from '../types';
 import { EyeIcon } from '../components/icons';
 // FIX: Update import path for useLanguage
-import { useLanguage } from '../contexts/AuthContext';
+import { useAuth, useLanguage } from '../contexts/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import useNavLinks from '../hooks/useNavLinks';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -45,24 +45,32 @@ const ExamineeResultsPage = () => {
     const [results, setResults] = useState<ExamResult[]>([]);
     const [loading, setLoading] = useState(true);
     const { lang } = useLanguage();
+    const { user } = useAuth();
+    const userId = user?.id;
     const t = translations[lang];
     const navLinks = useNavLinks();
 
     useEffect(() => {
+        let active = true;
+        if (!userId) {
+            setResults([]);
+            setLoading(false);
+            return;
+        }
         const fetchResults = async () => {
             try {
                 setLoading(true);
-                // In a real app, we'd pass the current user's ID
-                const data = await getExamineeResults("current-user-id");
-                setResults(data);
+                const data = await getExamineeResults(userId);
+                if (active) setResults(data);
             } catch (error) {
-                console.error("Failed to fetch results:", error);
+                if (active) console.error("Failed to fetch results:", error);
             } finally {
-                setLoading(false);
+                if (active) setLoading(false);
             }
         };
-        fetchResults();
-    }, []);
+        void fetchResults();
+        return () => { active = false; };
+    }, [userId]);
 
     const getPerformanceColor = (percentage: number) => {
         if (percentage >= 80) return 'text-green-500';
