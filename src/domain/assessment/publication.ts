@@ -1,11 +1,11 @@
 import type { Answer, Exam, Question } from '../../types.ts';
 
 /** A published quiz is a snapshot, not a live reference to a mutable bank item. */
-export interface PublishedQuiz extends Readonly<Exam> {
+export type PublishedQuiz = Readonly<Omit<Exam, 'questions'>> & {
   readonly version: number;
   readonly publishedAt: string;
   readonly questions: readonly Readonly<Question>[];
-}
+};
 
 function snapshotAnswer(answer: Answer): Answer {
   if (Array.isArray(answer)) return [...answer];
