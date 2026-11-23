@@ -21,7 +21,7 @@ npm run test:unit
 npm run build
 ```
 
-No cloud account or AI API key is needed for the mock prototype. The current HTML still includes a Tailwind development CDN and an external Jitsi script, so the UI is **not fully offline**. Chart.js and React now resolve through npm, and the obsolete import map was removed. These dependencies are tracked for removal/normalization during hardening. The deferred interview AI integration fails closed in the browser; do not put AI credentials in Vite variables.
+No cloud account or AI API key is needed for the mock prototype. Tailwind CSS now builds locally through Vite/PostCSS, and React/Chart.js resolve through npm; the obsolete import map was removed. The deferred Jitsi interview script and external images can still make the complete legacy UI dependent on the internet. Visual regression checks remain necessary. The deferred interview AI integration fails closed in the browser; do not put AI credentials in Vite variables.
 
 ## Source of truth
 

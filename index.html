@@ -5,85 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI-Powered Assessment Platform</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Jitsi Meet External API -->
   <script src="https://meet.jit.si/external_api.js"></script>
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class', // Enable dark mode based on class
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              '50': '#f0fdfa',
-              '100': '#ccfbf1',
-              '200': '#99f6e4',
-              '300': '#5eead4',
-              '400': '#2dd4bf',
-              '500': '#14b8a6',
-              '600': '#0d9488',
-              '700': '#0f766e',
-              '800': '#115e59',
-              '900': '#134e4a',
-              '950': '#042f2e',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  
-  <style>
-    body { margin: 0; font-family: sans-serif; }
-    .interactive-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .interactive-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    .dark .interactive-card:hover {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-    }
-    /* Kanban board styles */
-    .kanban-column.drag-over {
-        background-color: #e2e8f0; /* slate-200 */
-    }
-    .dark .kanban-column.drag-over {
-        background-color: #1e293b; /* slate-800 */
-    }
-    .dragging {
-        opacity: 0.5;
-        transform: rotate(3deg);
-    }
-    .modal-content-container {
-        animation: modal-fade-in 0.3s ease-out;
-    }
-    @keyframes modal-fade-in {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-    
-    /* New animations for redesigned pages */
-    .fade-in-on-scroll {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    }
-    .fade-in-on-scroll.is-visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .pricing-toggle-bg {
-        transition: transform 0.3s ease-in-out;
-    }
-
-  </style>
 
 </head>
 

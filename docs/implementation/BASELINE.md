@@ -42,3 +42,10 @@ Only stages that are verified should be marked complete.
 - The Analytics page now imports Chart.js from npm, not the global Chart.js CDN.
 - The deferred Gemini interview boundary explicitly rejects live calls without reading browser credentials; no external AI is configured.
 - Tailwind's dev-time CDN and the unrelated Jitsi external script still need a subsequent controlled migration.
+
+## Local CSS build migration
+- Removed Tailwind's runtime CDN and inline Tailwind theme configuration from `index.html`.
+- Reproduced the existing primary color palette using `tailwind.config.cjs` and moved legacy custom CSS to `src/styles.css`.
+- Added a PostCSS configuration, and imported the CSS from the real Vite entry point.
+- The safelist protects common color classes composed by older UI components, but visual regression testing is still required.
+- The deferred Jitsi script remains external and the legacy UI is not guaranteed offline.
