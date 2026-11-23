@@ -27,3 +27,8 @@ Evaluify is pre-launch. The strategic F03/F06 study recommends a modular-monolit
 - Attempt submission/idempotency and grade revisions.
 - AI quality/evaluation, cost and provider policy.
 - Tenant isolation and backend authorization.
+
+## Versioned publication prototype
+- `src/domain/assessment/publication.ts` validates an approved draft and builds a deeply frozen independent versioned quiz snapshot.
+- It does not publish to storage, authorize teachers, or verify content ownership. Those are separate service/backend gates.
+- Unit tests cover draft changes after publication, invalid versions/points, and editorial approval.
