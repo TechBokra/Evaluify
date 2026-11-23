@@ -9,6 +9,7 @@ import { ShieldCheckIcon, CheckCircleIcon, XCircleIcon, DownloadIcon } from '../
 import { useTheme } from '../../contexts/AuthContext';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { getDisplayScore, getDisplayPercentage, getDisplayItemStatus, getVerifiedPercentage } from '../../domain/assessment/resultPresentation';
 
 
 const formatAnswerForPdf = (answer: Answer, type: QuestionType): string => {
@@ -36,9 +37,10 @@ export const generateResultPdf = (result: ExamResult, exam: Exam, platformName: 
         startY: 45,
         head: [['Metric', 'Value']],
         body: [
-            ['Score', `${result.score} / ${result.totalPoints}`],
-            ['Percentage', `${Math.round((result.score / result.totalPoints) * 100)}%`],
-            ['Proctoring Flags', `${result.proctoringEvents?.length ?? 0}`],
+            ['Score', getDisplayScore(result)],
+            ['Percentage', getDisplayPercentage(result)],
+            ['Grading status', result.gradingStatus ?? 'Unverified demo'],
+            ['Observed client events (demo)', `${result.proctoringEvents?.length ?? 0}`],
         ],
         theme: 'striped',
     });
@@ -46,14 +48,15 @@ export const generateResultPdf = (result: ExamResult, exam: Exam, platformName: 
     // Question Breakdown
     const tableBody = exam.questions.map((q, index) => {
         const userAnswer = result.answers[q.id] ?? null;
-        const isCorrectCheck = JSON.stringify(userAnswer) === JSON.stringify(q.correctAnswer);
+        const itemStatus = getDisplayItemStatus(result, q.id);
+        const itemLabel = itemStatus === 'unverified-demo' ? 'Unverified demo' : itemStatus === 'needs-review' ? 'Pending review' : itemStatus;
         
         return [
             index + 1,
             q.text,
             formatAnswerForPdf(userAnswer, q.type),
-            formatAnswerForPdf(q.correctAnswer, q.type),
-            { content: isCorrectCheck ? 'Correct' : 'Incorrect', styles: { textColor: isCorrectCheck ? [0, 128, 0] : [255, 0, 0] } }
+            result.gradingStatus === 'final' ? formatAnswerForPdf(q.correctAnswer, q.type) : 'Not released',
+            { content: itemLabel, styles: { textColor: itemStatus === 'correct' ? [0, 128, 0] : itemStatus === 'incorrect' ? [220, 38, 38] : [100, 116, 139] } }
         ];
     });
 
@@ -82,10 +85,6 @@ export const generateResultPdf = (result: ExamResult, exam: Exam, platformName: 
     doc.save(`result_${result.userName.replace(/\s/g, '_')}_${exam.title.replace(/\s/g, '_')}.pdf`);
 };
 
-
-const isCorrect = (userAnswer: Answer, correctAnswer: Answer): boolean => {
-    return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
-};
 
 const AnswerDisplay: React.FC<{ answer: Answer }> = ({ answer }) => {
     if (answer === null || answer === undefined) {
@@ -138,7 +137,7 @@ const ExamineeResultPage: React.FC = () => {
         return <DashboardLayout navLinks={navLinks} pageTitle="Error"><p className="text-center">Result not found.</p></DashboardLayout>;
     }
 
-    const percentage = Math.round((result.score / result.totalPoints) * 100);
+    const percentage = getVerifiedPercentage(result);
 
     return (
         <DashboardLayout navLinks={navLinks} pageTitle={`Result: ${result.userName}`}>
@@ -149,16 +148,18 @@ const ExamineeResultPage: React.FC = () => {
                         <div className="space-y-4">
                             {exam.questions.map((q, index) => {
                                 const userAnswer = result.answers[q.id] ?? null;
-                                const correct = isCorrect(userAnswer, q.correctAnswer);
+                                const itemStatus = getDisplayItemStatus(result, q.id);
+                                const correct = itemStatus === 'correct';
+                                const incorrect = itemStatus === 'incorrect';
                                 return (
                                     <div key={q.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
                                         <div className="flex justify-between items-start">
                                             <p className="font-semibold text-slate-800 dark:text-slate-100">{index + 1}. {q.text}</p>
-                                            {correct ? <CheckCircleIcon className="w-6 h-6 text-green-500" /> : <XCircleIcon className="w-6 h-6 text-red-500" />}
+                                            {correct ? <CheckCircleIcon className="w-6 h-6 text-green-500" /> : incorrect ? <XCircleIcon className="w-6 h-6 text-red-500" /> : <span className="text-xs text-amber-600">{itemStatus === 'needs-review' ? 'Pending review' : itemStatus === 'unanswered' ? 'Unanswered' : 'Unverified demo'}</span>}
                                         </div>
                                         <div className="mt-2 text-sm">
                                             <p className="text-slate-500"><strong>Their Answer:</strong></p>
-                                            <div className={`p-2 rounded mt-1 ${correct ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                                            <div className={`p-2 rounded mt-1 ${correct ? 'bg-green-50 dark:bg-green-900/20' : incorrect ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-100 dark:bg-slate-700/40'}`}>
                                                 <AnswerDisplay answer={userAnswer}/>
                                             </div>
                                         </div>
@@ -170,16 +171,17 @@ const ExamineeResultPage: React.FC = () => {
                 </div>
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg text-center">
-                        <h3 className="text-xl font-bold mb-4">Overall Score</h3>
-                        <p className="text-6xl font-extrabold text-primary-500">{percentage}%</p>
-                        <p className="text-lg font-semibold">{result.score} / {result.totalPoints}</p>
+                        <h3 className="text-xl font-bold mb-4">{percentage === null ? 'Grading status' : 'Overall Score'}</h3>
+                        <p className={`${percentage === null ? 'text-xl' : 'text-6xl'} font-extrabold text-primary-500`}>{getDisplayPercentage(result)}</p>
+                        <p className="text-lg font-semibold">{getDisplayScore(result)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
-                        <h3 className="text-xl font-bold mb-4 flex items-center"><ShieldCheckIcon className="w-6 h-6 mr-2" /> Proctoring Summary</h3>
+                        <h3 className="text-xl font-bold mb-2 flex items-center"><ShieldCheckIcon className="w-6 h-6 mr-2" /> Demo UI events</h3>
+                        <p className="text-xs text-amber-600 mb-3">Not a cheating verdict or authenticated proctoring.</p>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between"><span>Tab Switches:</span><span className="font-bold">{result.proctoringEvents?.filter(e=>e.type === 'tab_switch').length ?? 0}</span></div>
                             <div className="flex justify-between"><span>Paste Events:</span><span className="font-bold">{result.proctoringEvents?.filter(e=>e.type === 'paste_content').length ?? 0}</span></div>
-                            <div className="flex justify-between"><span>Face Anomalies:</span><span className="font-bold">{result.proctoringEvents?.filter(e=>e.type === 'face_detection').length ?? 0}</span></div>
+                            <div className="flex justify-between"><span>Legacy simulated face flags:</span><span className="font-bold">{result.proctoringEvents?.filter(e=>e.type === 'face_detection').length ?? 0}</span></div>
                         </div>
                         <Link to={`/results/${resultId}/proctoring`} className="mt-4 block text-center bg-primary-500 hover:bg-primary-600 text-white font-bold py-2 px-4 rounded-lg w-full">
                             View Full Report
