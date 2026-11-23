@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SitePageLayout from '../components/SitePageLayout';
 import { useLanguage, useTheme } from '../contexts/AuthContext';
 import { CheckCircleIcon } from '../components/icons';

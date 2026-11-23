@@ -173,7 +173,7 @@ const LiveInterviewPage: React.FC = () => {
                 model: 'gemini-2.5-flash',
                 contents: prompt,
             });
-            setCurrentAiTip(response.text);
+            setCurrentAiTip(response.text ?? '');
         } catch (err) {
             console.error("Gemini error:", err);
             addNotification("Could not generate a follow-up question.", "error");

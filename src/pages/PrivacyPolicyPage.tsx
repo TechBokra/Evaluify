@@ -1,4 +1,3 @@
-import React from 'react';
 // FIX: Update import path for useLanguage hook to use the centralized AuthContext.
 import { useLanguage } from '../contexts/AuthContext';
 import LegalPageLayout from '../components/LegalPageLayout';

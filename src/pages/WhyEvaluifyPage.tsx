@@ -119,7 +119,7 @@ const WhyEvaluifyPage = () => {
                                 { feature: t.insights, evaluify: t.insightsEval, traditional: t.insightsTrad },
                                 // FIX: Corrected a typo in the data structure, ensuring the correct translation `t.accessibilityTrad` is used.
                                 { feature: t.accessibility, evaluify: t.accessibilityEval, traditional: t.accessibilityTrad },
-                            ].map((item, index) => (
+                            ].map((item) => (
                                 <div key={item.feature} className={`grid grid-cols-3 text-center items-center border-t border-slate-200 dark:border-slate-700`}>
                                     <div className="p-4 text-left font-semibold">{item.feature}</div>
                                     <div className="p-4 bg-primary-500/5 dark:bg-primary-500/10">
