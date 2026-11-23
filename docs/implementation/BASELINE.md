@@ -29,3 +29,10 @@ First code-preparation pass on `main`, with the original state preserved on `bac
 6. Strengthen tests and eliminate sensitive or fictitious demo claims.
 
 Only stages that are verified should be marked complete.
+
+## Completed verification — second pass
+- GitHub Actions reported green for the first six scoring unit tests and full TypeScript/Vite build after fixing pre-existing build errors.
+- A one-time GitHub runner created and committed the dependency lockfile; clean `npm ci`, tests, and build succeeded during lockfile creation.
+- Quality CI now uses `npm ci` and caches npm to enforce committed dependency resolution.
+- Removed only the empty root-level files that had populated equivalents in the active `src/` tree; nonempty duplicates remain until their role is reviewed.
+- Cloud services, live AI, and live student data remain out of scope.
