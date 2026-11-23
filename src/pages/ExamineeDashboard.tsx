@@ -9,6 +9,7 @@ import useNavLinks from '../hooks/useNavLinks';
 // FIX: Update import path for useLanguage
 import { useLanguage } from '../contexts/AuthContext';
 import EmptyState from '../components/EmptyState';
+import { getDisplayScore, getDisplayPercentage, getVerifiedPercentage } from '../domain/assessment/resultPresentation';
 
 const translations = {
     en: {
@@ -130,7 +131,7 @@ const ExamineeDashboard = () => {
             <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-lg">
                 <div className="space-y-2">
                 {completedResults.map(result => {
-                    const percentage = Math.round((result.score / result.totalPoints) * 100);
+                    const percentage = getVerifiedPercentage(result);
                     return (
                         <div key={result.id} className="p-4 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between">
                             <div>
@@ -139,8 +140,8 @@ const ExamineeDashboard = () => {
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
-                                    <p className={`font-bold text-xl ${percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}`}>{percentage}%</p>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">{result.score}/{result.totalPoints}</p>
+                                    <p className={`font-bold text-xl ${percentage === null ? 'text-slate-500' : percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}`}>{getDisplayPercentage(result, lang)}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">{getDisplayScore(result, lang)}</p>
                                 </div>
                                 <Link to={`/examinee/result/${result.id}`} className="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-semibold py-2 px-4 rounded-lg text-sm">
                                     {t.review}

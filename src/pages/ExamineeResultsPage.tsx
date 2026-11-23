@@ -8,6 +8,7 @@ import { useLanguage } from '../contexts/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import useNavLinks from '../hooks/useNavLinks';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { getDisplayScore, getDisplayPercentage, getVerifiedPercentage } from '../domain/assessment/resultPresentation';
 
 const translations = {
     en: {
@@ -89,13 +90,13 @@ const ExamineeResultsPage = () => {
                             </thead>
                             <tbody>
                                 {results.map(result => {
-                                    const percentage = Math.round((result.score / result.totalPoints) * 100);
+                                    const percentage = getVerifiedPercentage(result);
                                     return (
                                         <tr key={result.id} className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
                                             <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap dark:text-white">{result.examTitle}</td>
-                                            <td className="px-6 py-4">{result.score} / {result.totalPoints}</td>
-                                            <td className={`px-6 py-4 font-bold ${getPerformanceColor(percentage)}`}>
-                                                {percentage}%
+                                            <td className="px-6 py-4">{getDisplayScore(result, lang)}</td>
+                                            <td className={`px-6 py-4 font-bold ${percentage === null ? 'text-slate-500' : getPerformanceColor(percentage)}`}>
+                                                {getDisplayPercentage(result, lang)}
                                             </td>
                                             <td className="px-6 py-4">{result.submittedAt.toLocaleDateString()}</td>
                                             <td className="px-6 py-4">

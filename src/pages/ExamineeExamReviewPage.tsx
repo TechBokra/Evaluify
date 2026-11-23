@@ -7,6 +7,7 @@ import { CheckCircleIcon, XCircleIcon, DownloadIcon } from '../components/icons'
 // FIX: Update import path for useLanguage and useTheme
 import { useLanguage, useTheme } from '../contexts/AuthContext';
 import { generateResultPdf } from './shared/ExamineeResultPage';
+import { getDisplayScore, getDisplayItemStatus } from '../domain/assessment/resultPresentation';
 
 const translations = {
     en: {
@@ -19,6 +20,9 @@ const translations = {
         notAnswered: "Not Answered",
         correct: "Correct",
         incorrect: "Incorrect",
+        pending: "Pending teacher review",
+        unverified: "Unverified demo",
+        unanswered: "Not answered",
         justification: "Justification:",
         downloadPdf: "Download PDF",
     },
@@ -32,14 +36,13 @@ const translations = {
         notAnswered: "لم تتم الإجابة",
         correct: "صحيحة",
         incorrect: "غير صحيحة",
+        pending: "بانتظار مراجعة المدرس",
+        unverified: "عرض تجريبي غير موثق",
+        unanswered: "بدون إجابة",
         justification: "التعليل:",
         downloadPdf: "تحميل PDF",
     }
 }
-
-const isCorrect = (userAnswer: Answer, correctAnswer: Answer): boolean => {
-    return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
-};
 
 const AnswerDisplay: React.FC<{ answer: Answer, type: QuestionType, lang: 'en' | 'ar' }> = ({ answer, type, lang }) => {
     if (answer === null || answer === undefined) {
@@ -111,31 +114,35 @@ const ExamineeExamReviewPage = () => {
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-lg">
                     <h1 className="text-3xl font-bold mb-2">{t.title}: {exam.title}</h1>
-                    <p className="text-slate-600 dark:text-slate-400 mb-6">Score: {result.score} / {result.totalPoints}</p>
+                    <p className="text-slate-600 dark:text-slate-400 mb-6">{getDisplayScore(result, lang)}</p>
 
                     <div className="space-y-6">
                         {exam.questions.map((q, index) => {
                             const userAnswer = result.answers[q.id] ?? null;
-                            const correct = isCorrect(userAnswer, q.correctAnswer);
+                            const status = getDisplayItemStatus(result, q.id);
+                            const correct = status === 'correct';
+                            const incorrect = status === 'incorrect';
                             return (
                                 <div key={q.id} className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg">
                                     <div className="flex justify-between items-start">
                                         <p className="font-semibold text-lg text-slate-800 dark:text-slate-200">{index + 1}. {q.text}</p>
-                                        <span className={`flex items-center text-sm font-bold ${correct ? 'text-green-500' : 'text-red-500'}`}>
-                                            {correct ? <CheckCircleIcon className="w-5 h-5 mr-1" /> : <XCircleIcon className="w-5 h-5 mr-1" />}
-                                            {correct ? t.correct : t.incorrect}
+                                        <span className={`flex items-center text-sm font-bold ${correct ? 'text-green-500' : incorrect ? 'text-red-500' : 'text-amber-600'}`}>
+                                            {correct ? <CheckCircleIcon className="w-5 h-5 mr-1" /> : incorrect ? <XCircleIcon className="w-5 h-5 mr-1" /> : null}
+                                            {correct ? t.correct : incorrect ? t.incorrect : status === 'needs-review' ? t.pending : status === 'unanswered' ? t.unanswered : t.unverified}
                                         </span>
                                     </div>
 
                                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className={`p-4 rounded-lg ${correct ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                                        <div className={`p-4 rounded-lg ${correct ? 'bg-green-50 dark:bg-green-900/20' : incorrect ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-100 dark:bg-slate-700/40'}`}>
                                             <h4 className="font-bold mb-2 text-slate-800 dark:text-slate-200">{t.yourAnswer}</h4>
                                             <AnswerDisplay answer={userAnswer} type={q.type} lang={lang} />
                                         </div>
-                                        <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
-                                            <h4 className="font-bold mb-2 text-slate-800 dark:text-slate-200">{t.correctAnswer}</h4>
-                                            <AnswerDisplay answer={q.correctAnswer} type={q.type} lang={lang} />
-                                        </div>
+                                        {result.gradingStatus === 'final' && (
+                                            <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                                                <h4 className="font-bold mb-2 text-slate-800 dark:text-slate-200">{t.correctAnswer}</h4>
+                                                <AnswerDisplay answer={q.correctAnswer} type={q.type} lang={lang} />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );
