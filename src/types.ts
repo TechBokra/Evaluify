@@ -94,7 +94,7 @@ export interface ExamResult {
     /** Per-question outcomes calculated by the deterministic assessment engine. */
     itemScores?: {
       questionId: string;
-      status: 'correct' | 'incorrect' | 'unanswered' | 'needs-review';
+      status: 'correct' | 'incorrect' | 'unanswered' | 'needs-review' | 'reviewed';
       awardedPoints: number;
       maxPoints: number;
     }[];
