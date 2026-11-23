@@ -92,6 +92,15 @@ export interface ExamResult {
     totalPoints: number;
     answers: StudentAnswer;
     proctoringEvents?: ProctoringEvent[];
+    /** Present only for results created by the validated prototype scoring path. */
+    gradingStatus?: 'final' | 'needs-review';
+    pendingReviewPoints?: number;
+    itemScores?: Array<{
+      questionId: string;
+      status: 'correct' | 'incorrect' | 'unanswered' | 'needs-review';
+      awardedPoints: number;
+      maxPoints: number;
+    }>;
 }
 
 export interface DashboardStats {
