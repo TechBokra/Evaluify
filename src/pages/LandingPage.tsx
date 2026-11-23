@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { SparklesIcon, DesktopIcon, MicIcon, LightbulbIcon, InboxIcon, EyeIcon, TagIcon, ShieldCheckIcon, Wand2Icon } from '../components/icons';
+import { SparklesIcon, DesktopIcon, MicIcon, LightbulbIcon, ShieldCheckIcon, Wand2Icon } from '../components/icons';
 // FIX: Update import path for useLanguage and useTheme hooks to use the centralized AuthContext.
 import { useLanguage, useTheme } from '../contexts/AuthContext';
 import SitePageLayout from '../components/SitePageLayout';
