@@ -50,7 +50,7 @@ export function aggregateSkillMetrics(
     const questionById = new Map(examSnapshot.questions.map(question => [question.id, question]));
 
     for (const item of result.itemScores) {
-      if (!['correct', 'incorrect', 'unanswered'].includes(item.status)) continue;
+      if (!['correct', 'incorrect', 'unanswered', 'reviewed'].includes(item.status)) continue;
       if (!Number.isFinite(item.maxPoints) || item.maxPoints <= 0 ||
           !Number.isFinite(item.awardedPoints) || item.awardedPoints < 0 ||
           item.awardedPoints > item.maxPoints) continue;

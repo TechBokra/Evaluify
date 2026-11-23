@@ -83,3 +83,17 @@ test('deduplicates repeated skill tags within a single question', () => {
   assert.equal(result[0].scoredQuestions,3);
   assert.equal(result[0].possiblePoints,15);
 });
+
+test('includes manually reviewed scores only in finalized evidence', () => {
+  const pending = snapshot('pending','a','needs-review',3);
+  pending.result.itemScores[0].status = 'reviewed';
+  pending.result.itemScores[0].awardedPoints = 3;
+  const finalized = snapshot('finalized','b','final',3);
+  finalized.result.itemScores[0].status = 'reviewed';
+  finalized.result.itemScores[0].awardedPoints = 3;
+  const metrics = aggregateSkillMetrics([pending, finalized, snapshot('r3','c','final',5)]);
+  assert.equal(metrics[0].eligibleAttempts, 2);
+  assert.equal(metrics[0].awardedPoints, 8);
+  assert.equal(metrics[0].gradeShare, null);
+  assert.equal(metrics[0].evidenceStatus, 'insufficient-evidence');
+});

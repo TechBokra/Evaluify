@@ -49,7 +49,7 @@ export const generateResultPdf = (result: ExamResult, exam: Exam, platformName: 
     const tableBody = exam.questions.map((q, index) => {
         const userAnswer = result.answers[q.id] ?? null;
         const itemStatus = getDisplayItemStatus(result, q.id);
-        const itemLabel = itemStatus === 'unverified-demo' ? 'Unverified demo' : itemStatus === 'needs-review' ? 'Pending review' : itemStatus;
+        const itemLabel = itemStatus === 'unverified-demo' ? 'Unverified demo' : itemStatus === 'needs-review' ? 'Pending review' : itemStatus === 'reviewed' ? 'Reviewed by teacher' : itemStatus;
         
         return [
             index + 1,
@@ -155,7 +155,7 @@ const ExamineeResultPage: React.FC = () => {
                                     <div key={q.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
                                         <div className="flex justify-between items-start">
                                             <p className="font-semibold text-slate-800 dark:text-slate-100">{index + 1}. {q.text}</p>
-                                            {correct ? <CheckCircleIcon className="w-6 h-6 text-green-500" /> : incorrect ? <XCircleIcon className="w-6 h-6 text-red-500" /> : <span className="text-xs text-amber-600">{itemStatus === 'needs-review' ? 'Pending review' : itemStatus === 'unanswered' ? 'Unanswered' : 'Unverified demo'}</span>}
+                                            {correct ? <CheckCircleIcon className="w-6 h-6 text-green-500" /> : incorrect ? <XCircleIcon className="w-6 h-6 text-red-500" /> : <span className="text-xs text-amber-600">{itemStatus === 'needs-review' ? 'Pending review' : itemStatus === 'unanswered' ? 'Unanswered' : itemStatus === 'reviewed' ? 'Reviewed by teacher' : 'Unverified demo'}</span>}
                                         </div>
                                         <div className="mt-2 text-sm">
                                             <p className="text-slate-500"><strong>Their Answer:</strong></p>

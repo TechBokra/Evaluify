@@ -21,6 +21,7 @@ const translations = {
         correct: "Correct",
         incorrect: "Incorrect",
         pending: "Pending teacher review",
+        reviewed: "Reviewed by teacher",
         unverified: "Unverified demo",
         unanswered: "Not answered",
         justification: "Justification:",
@@ -37,6 +38,7 @@ const translations = {
         correct: "صحيحة",
         incorrect: "غير صحيحة",
         pending: "بانتظار مراجعة المدرس",
+        reviewed: "تمت مراجعتها بواسطة المدرس",
         unverified: "عرض تجريبي غير موثق",
         unanswered: "بدون إجابة",
         justification: "التعليل:",
@@ -128,7 +130,7 @@ const ExamineeExamReviewPage = () => {
                                         <p className="font-semibold text-lg text-slate-800 dark:text-slate-200">{index + 1}. {q.text}</p>
                                         <span className={`flex items-center text-sm font-bold ${correct ? 'text-green-500' : incorrect ? 'text-red-500' : 'text-amber-600'}`}>
                                             {correct ? <CheckCircleIcon className="w-5 h-5 mr-1" /> : incorrect ? <XCircleIcon className="w-5 h-5 mr-1" /> : null}
-                                            {correct ? t.correct : incorrect ? t.incorrect : status === 'needs-review' ? t.pending : status === 'unanswered' ? t.unanswered : t.unverified}
+                                            {correct ? t.correct : incorrect ? t.incorrect : status === 'needs-review' ? t.pending : status === 'unanswered' ? t.unanswered : status === 'reviewed' ? t.reviewed : t.unverified}
                                         </span>
                                     </div>
 
