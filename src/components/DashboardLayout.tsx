@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { LogOutIcon, SunIcon, MoonIcon } from './icons';
+import { SunIcon, MoonIcon } from './icons';
 // FIX: Update import path for AuthContext hooks
 import { useAuth, useLanguage, useTheme } from '../contexts/AuthContext';
 // FIX: Remove .tsx extension and fix path for DarkModeContext hook

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 // FIX: Import contexts and providers from AuthContext to break circular dependency
 import { AuthProvider, useAuth, ThemeAndLanguageProvider, useLanguage } from './contexts/AuthContext';

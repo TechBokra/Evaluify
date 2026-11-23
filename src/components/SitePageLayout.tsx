@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useTheme, useLanguage } from '../contexts/AuthContext';
 // FIX: Removed .tsx extension to fix module resolution error.
 import { useDarkMode } from '../contexts/DarkModeContext';
-import { BookOpenIcon, SunIcon, MoonIcon, ShoppingCartIcon } from './icons';
+import { BookOpenIcon, SunIcon, MoonIcon } from './icons';
 
 interface SitePageLayoutProps {
     children: React.ReactNode;

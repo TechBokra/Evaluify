@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 // Fix: Added imports for mockApi and types
 import { generateQuestionsWithAI } from '../services/mockApi.ts';
 import { Question, QuestionType } from '../types.ts';
-import { SparklesIcon, SpinnerIcon } from './icons.tsx';
+import { SparklesIcon } from './icons.tsx';
 // FIX: Update import path for useLanguage
 import { useLanguage } from '../contexts/AuthContext';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 // Fix: Added imports for types and mockApi
 import { Question, QuestionType, TrueFalseJustificationAnswer } from '../types.ts';
-import { XCircleIcon, Wand2Icon, SpinnerIcon } from './icons.tsx';
+import { XCircleIcon, Wand2Icon } from './icons.tsx';
 import { getAIQuestionSuggestions, getCategories } from '../services/mockApi.ts';
 // FIX: Update import path for useLanguage
 import { useLanguage } from '../contexts/AuthContext';
@@ -201,7 +201,8 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ isOpen, onClose, 
     if (finalData.type === QuestionType.Ordering) {
       finalData.correctAnswer = finalData.options || [];
     }
-    onSave(finalData);
+    // The parent owns assignment of the creation scope.
+    onSave('id' in finalData ? finalData : { ...finalData, ownerId: '' });
   };
   
   const validateForm = () => {
@@ -305,8 +306,8 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ isOpen, onClose, 
                 )}
                  {q.type === QuestionType.TrueFalse && (
                     <div className="flex gap-4">
-                        <label className="flex items-center"><input type="radio" name={`correct-answer`} value="True" checked={q.correctAnswer === 'True'} onChange={e => handleChange('correctAnswer', 'True')} className="mr-2" /> True</label>
-                        <label className="flex items-center"><input type="radio" name={`correct-answer`} value="False" checked={q.correctAnswer === 'False'} onChange={e => handleChange('correctAnswer', 'False')} className="mr-2" /> False</label>
+                        <label className="flex items-center"><input type="radio" name={`correct-answer`} value="True" checked={q.correctAnswer === 'True'} onChange={() => handleChange('correctAnswer', 'True')} className="mr-2" /> True</label>
+                        <label className="flex items-center"><input type="radio" name={`correct-answer`} value="False" checked={q.correctAnswer === 'False'} onChange={() => handleChange('correctAnswer', 'False')} className="mr-2" /> False</label>
                     </div>
                 )}
                  {q.type === QuestionType.TrueFalseWithJustification && (
