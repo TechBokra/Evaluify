@@ -25,6 +25,12 @@ export function validateQuestionForApproval(question: Readonly<Question>): strin
   if (!Number.isFinite(question.points) || question.points <= 0) problems.push('Points must be positive');
   if (!question.ownerId.trim() || !question.id.trim()) problems.push('Question identity is required');
 
+  if (!question.rightsBasis || !['original', 'licensed', 'open-license'].includes(question.rightsBasis)) {
+    problems.push('Content rights basis is required');
+  } else if (question.rightsBasis !== 'original' && !question.sourceTitle?.trim()) {
+    problems.push('Third-party content source is required');
+  }
+
   const answer = question.correctAnswer;
   switch (question.type) {
     case 'multiple-choice':

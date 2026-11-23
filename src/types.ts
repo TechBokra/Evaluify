@@ -55,6 +55,9 @@ export interface Question {
   correctAnswer: Answer;
   points: number;
   tags: string[];
+  skillTags?: string[];
+  sourceTitle?: string;
+  rightsBasis?: 'original' | 'licensed' | 'open-license';
   status?: QuestionStatus;
 }
 

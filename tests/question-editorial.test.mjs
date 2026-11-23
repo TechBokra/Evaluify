@@ -6,7 +6,7 @@ const makeQuestion = (overrides = {}) => ({
   id: 'item-1', ownerId: 'teacher-1', text: 'Synthetic example',
   type: 'multiple-choice', category: 'Demo', subCategory: 'Numbers',
   options: ['One','Two'], correctAnswer: 'Two', points: 2,
-  tags: ['math'], status: 'approved', ...overrides,
+  tags: ['math'], rightsBasis: 'original', status: 'approved', ...overrides,
 });
 
 test('new or edited questions become draft without mutating source', () => {
@@ -61,4 +61,12 @@ test('ordering and matching answer keys require complete structures', () => {
   assert.deepEqual(validateQuestionForApproval(makeQuestion({
     type:'matching',prompts:['A','B'],options:['1','2'],correctAnswer:['1','2']
   })),[]);
+});
+
+test('requires an explicit content rights basis and a third-party attribution', () => {
+  assert.match(validateQuestionForApproval(makeQuestion({rightsBasis: undefined})).join(' '), /rights basis/);
+  assert.match(validateQuestionForApproval(makeQuestion({rightsBasis: 'licensed'})).join(' '), /source/);
+  assert.deepEqual(validateQuestionForApproval(makeQuestion({
+    rightsBasis: 'licensed', sourceTitle: 'Provided by teacher with permission'
+  })), []);
 });

@@ -23,6 +23,8 @@ import {
     PerformanceBySubject,
     CourseCompletion
 } from '../types';
+import { asQuestionDraft, approveQuestionDraft } from '../domain/questions/editorial';
+import { parseQuestionsCsv } from '../domain/content/questionCsv';
 import { createAttemptService, MemoryAttemptRepository } from '../domain/assessment/attempts';
 
 const attemptService = createAttemptService(new MemoryAttemptRepository());
@@ -254,23 +256,48 @@ export const getQuestionBank = async (filters: { ownerId?: string, status?: Ques
     );
 };
 
+/** Local demo only; imported and manually edited questions always need approval. */
 export const addQuestionToBank = async (questionData: Omit<Question, 'id'>): Promise<Question> => {
-    await delay(300);
-    const newQuestion: Question = {
+    await delay(50);
+    const question: Question = asQuestionDraft({
         ...questionData,
-        id: `q-${Date.now()}`,
-        status: QuestionStatus.Approved, // Default for this mock
-    };
-    mockQuestions.push(newQuestion);
-    return newQuestion;
+        id: 'q-' + crypto.randomUUID(),
+    });
+    mockQuestions.push(question);
+    return structuredClone(question);
 };
 
 export const updateQuestionInBank = async (questionData: Question): Promise<Question> => {
-    await delay(300);
+    await delay(50);
     const index = mockQuestions.findIndex(q => q.id === questionData.id);
-    if (index === -1) throw new Error("Question not found");
-    mockQuestions[index] = questionData;
-    return questionData;
+    if (index === -1) throw new Error('Question not found');
+    if (mockQuestions[index].ownerId !== questionData.ownerId) throw new Error('Question owner mismatch');
+    const updated = asQuestionDraft(questionData);
+    mockQuestions[index] = updated;
+    return structuredClone(updated);
+};
+
+export const approveQuestionInBank = async (questionId: string, ownerId: string): Promise<Question> => {
+    await delay(50);
+    const index = mockQuestions.findIndex(q => q.id === questionId);
+    if (index === -1) throw new Error('Question not found');
+    const approved = approveQuestionDraft(mockQuestions[index], ownerId);
+    mockQuestions[index] = approved;
+    return structuredClone(approved);
+};
+
+export const importQuestionsCsvToBank = async (ownerId: string, csvText: string): Promise<Question[]> => {
+    if (!ownerId.trim()) throw new Error('Question owner required');
+    const drafts = parseQuestionsCsv(csvText);
+    const newQuestions: Question[] = drafts.map(item => asQuestionDraft({
+        ...item,
+        type: item.type as QuestionType,
+        id: 'q-' + crypto.randomUUID(),
+        ownerId,
+    }));
+    // All-or-nothing import: parse and construct the entire batch before mutation.
+    mockQuestions.push(...newQuestions);
+    return structuredClone(newQuestions);
 };
 
 export const deleteQuestionFromBank = async (questionId: string): Promise<void> => {
@@ -282,7 +309,12 @@ export const deleteQuestionFromBank = async (questionId: string): Promise<void> 
 // Category APIs
 export const getCategories = async (): Promise<Record<string, string[]>> => {
     await delay(200);
-    return JSON.parse(JSON.stringify(mockCategories));
+    const categories = structuredClone(mockCategories);
+    for (const item of mockQuestions) {
+        const subcategories = categories[item.category] ?? (categories[item.category] = []);
+        if (!subcategories.includes(item.subCategory)) subcategories.push(item.subCategory);
+    }
+    return categories;
 };
 
 export const addCategory = async (name: string): Promise<void> => {
