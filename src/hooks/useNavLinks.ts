@@ -24,6 +24,7 @@ const navTranslations = {
         testBuilder: 'Test Builder',
         aiTools: 'AI Tools',
         reports: 'Reports',
+        teacherReviews: 'Teacher Reviews',
         questionBank: 'Question Bank',
         analytics: 'Analytics',
         results: 'Results',
@@ -47,6 +48,7 @@ const navTranslations = {
         testBuilder: 'إنشاء الاختبارات',
         aiTools: 'أدوات الذكاء الاصطناعي',
         reports: 'التقارير',
+        teacherReviews: 'مراجعة الإجابات',
         questionBank: 'بنك الأسئلة',
         analytics: 'التحليلات',
         results: 'النتائج',
@@ -78,6 +80,7 @@ const useNavLinks = (): NavLink[] => {
         { path: '/test-builder', icon: WrenchIcon, label: t.testBuilder },
         { path: '/ai-tools', icon: SparklesIcon, label: t.aiTools },
         { path: '/reports', icon: DocumentReportIcon, label: t.reports },
+        { path: '/teacher/reviews', icon: CheckCircleIcon, label: t.teacherReviews },
         { path: '/question-bank', icon: BookOpenIcon, label: t.questionBank },
         { path: '/analytics', icon: ChartBarIcon, label: t.analytics },
     ];

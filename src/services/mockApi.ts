@@ -26,8 +26,10 @@ import {
 import { asQuestionDraft, approveQuestionDraft } from '../domain/questions/editorial';
 import { parseQuestionsCsv } from '../domain/content/questionCsv';
 import { createAttemptService, MemoryAttemptRepository } from '../domain/assessment/attempts';
+import { createReviewCase, recordManualReview, type ReviewCase, type ReviewDecision } from '../domain/assessment/review';
 
 const attemptService = createAttemptService(new MemoryAttemptRepository());
+const reviewCases = new Map<string, ReviewCase>();
 
 // --- MOCK DATABASE ---
 
@@ -207,6 +209,59 @@ export const getExamResultDetails = async (resultId: string): Promise<{ result: 
     return { result, exam };
 };
 
+
+
+// Local teacher-review demonstration. These are NOT secure identity checks or durable records.
+const demoTeacherRecord = (resultId: string, ownerId: string) => {
+    const attempt = attemptService.findByResultId(resultId);
+    if (!attempt || attempt.examSnapshot.ownerId !== ownerId) return null;
+    return attempt;
+};
+
+export const getTeacherReviewQueue = async (ownerId: string): Promise<ExamResult[]> => {
+    await delay(80);
+    return structuredClone(mockExamResults.filter(result =>
+        result.gradingStatus === 'needs-review' &&
+        !!demoTeacherRecord(result.id, ownerId)
+    ));
+};
+
+export const getTeacherReviewCase = async (resultId: string, ownerId: string): Promise<ReviewCase | null> => {
+    await delay(80);
+    const attempt = demoTeacherRecord(resultId, ownerId);
+    if (!attempt) return null;
+    const existing = reviewCases.get(resultId);
+    if (existing) return structuredClone(existing);
+    if (attempt.result.gradingStatus !== 'needs-review') return null;
+    return createReviewCase(attempt.result, attempt.examSnapshot);
+};
+
+export const submitTeacherReview = async (params: {
+    resultId: string;
+    ownerId: string;
+    reviewerId: string;
+    expectedRevision: number;
+    reason: string;
+    decisions: ReviewDecision[];
+}): Promise<ReviewCase> => {
+    const attempt = demoTeacherRecord(params.resultId, params.ownerId);
+    if (!attempt) throw new Error('Review case not found for this teacher');
+    const index = mockExamResults.findIndex(result => result.id === params.resultId);
+    if (index < 0) throw new Error('Original result not found');
+    const existing = reviewCases.get(params.resultId) ?? createReviewCase(attempt.result, attempt.examSnapshot);
+    const next = recordManualReview(existing, {
+        id: 'review-' + crypto.randomUUID(),
+        expectedRevision: params.expectedRevision,
+        ownerId: params.ownerId,
+        reviewerId: params.reviewerId,
+        recordedAt: new Date().toISOString(),
+        reason: params.reason,
+        decisions: params.decisions,
+    });
+    reviewCases.set(params.resultId, structuredClone(next));
+    mockExamResults[index] = structuredClone(next.result);
+    return structuredClone(next);
+};
 
 // Admin/Teacher APIs
 export const getAssessments = async (ownerId: string): Promise<Exam[]> => {

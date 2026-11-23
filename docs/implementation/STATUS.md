@@ -33,3 +33,9 @@ Updated: 2026-11-23. Source of truth is GitHub Actions on `main`; do not treat a
 5. Add browser integration/E2E tests, verify RTL/mobile, and remove remaining misleading legacy product claims.
 
 We intentionally adapt selected **ideas** from Examify (question forms, CSV intake, analytics) without merging repositories or treating mocked AI as implemented. Source file provenance and rights must be reviewed before literal code reuse.
+
+## Teacher review UI — local prototype increment
+- `/teacher/reviews` shows only new, reviewable attempts belonging to the synthetic teacher owner `teacher-1`; historical seeded results cannot be graded.
+- `/teacher/reviews/:resultId` lets the demo teacher inspect submitted answers and an example rubric, assign 0–max points to pending items, provide feedback and record a revisioned review event.
+- An answer becomes `reviewed`; the grade becomes final only after all pending items are processed. Review data is in-memory and cannot serve as a tamper-proof audit log.
+- Real teacher authentication, ownership validation, role authorization, durable journaling and concurrent writes require a trusted backend before any external pilot.

@@ -34,6 +34,7 @@ import ExamTaker from './pages/ExamTaker';
 import LiveInterviewPage from './pages/LiveInterviewPage';
 import TeacherAIToolsPage from './pages/TeacherAIToolsPage';
 import TeacherReportsPage from './pages/TeacherReportsPage';
+import TeacherReviewPage from './pages/TeacherReviewPage';
 import TestBuilderPage from './pages/TestBuilderPage';
 
 // Examinee pages
@@ -170,6 +171,8 @@ const AppRoutes: React.FC = () => {
                 <Route path="/test-builder" element={<TestBuilderPage />} />
                 <Route path="/ai-tools" element={<TeacherAIToolsPage />} />
                 <Route path="/reports" element={<TeacherReportsPage />} />
+                <Route path="/teacher/reviews" element={<TeacherReviewPage />} />
+                <Route path="/teacher/reviews/:resultId" element={<TeacherReviewPage />} />
             </Route>
 
             {/* Shared Interview Routes (Teacher, Corporate) */}
