@@ -23,6 +23,9 @@ import {
     PerformanceBySubject,
     CourseCompletion
 } from '../types';
+import { createAttemptService, MemoryAttemptRepository } from '../domain/assessment/attempts';
+
+const attemptService = createAttemptService(new MemoryAttemptRepository());
 
 // --- MOCK DATABASE ---
 
@@ -151,34 +154,25 @@ export const getExamDetails = async (examId: string): Promise<Exam | null> => {
     return mockExams.find(e => e.id === examId) || null;
 };
 
-export const submitExam = async (examId: string, answers: StudentAnswer, proctoringEvents: ProctoringEvent[]): Promise<ExamResult> => {
-    await delay(1000);
+/** In-memory prototype only: submission identity is synthetic, not authenticated. */
+export const submitExam = async (
+    examId: string,
+    answers: StudentAnswer,
+    proctoringEvents: ProctoringEvent[],
+    context: { attemptId: string; userId: string; userName: string },
+): Promise<ExamResult> => {
+    await delay(300);
     const exam = mockExams.find(e => e.id === examId);
-    if (!exam) throw new Error("Exam not found");
+    if (!exam) throw new Error('Exam not found');
 
-    let score = 0;
-    const totalPoints = exam.questions.reduce((sum, q) => sum + q.points, 0);
-
-    exam.questions.forEach(q => {
-        if (JSON.stringify(answers[q.id]) === JSON.stringify(q.correctAnswer)) {
-            score += q.points;
-        }
+    const attempt = attemptService.submit({
+        exam, answers, proctoringEvents, attemptId: context.attemptId,
+        userId: context.userId, userName: context.userName,
     });
-
-    const newResult: ExamResult = {
-        id: `res-${Date.now()}`,
-        examId,
-        examTitle: exam.title,
-        userId: 'current-user-id',
-        userName: 'Current User', // Replace with actual user name
-        submittedAt: new Date(),
-        score,
-        totalPoints,
-        answers,
-        proctoringEvents
-    };
-    mockExamResults.push(newResult);
-    return newResult;
+    if (!mockExamResults.some(result => result.id === attempt.result.id)) {
+        mockExamResults.push(attempt.result);
+    }
+    return attempt.result;
 };
 
 export const getExamineeDashboardData = async (userId: string) => {
@@ -191,22 +185,23 @@ export const getExamineeDashboardData = async (userId: string) => {
             return (!from || from <= now) && (!until || until >= now);
         }).map(({questions, ...rest}) => rest),
         upcomingExams: mockExams.filter(e => e.availableFrom && new Date(e.availableFrom) > now).map(({questions, ...rest}) => rest),
-        completedResults: mockExamResults.filter(r => r.userId === userId || r.userId === 'current-user-id').slice(0, 5),
+        completedResults: mockExamResults.filter(r => r.userId === userId).slice(0, 5),
     };
 };
 
 export const getExamineeResults = async (userId: string): Promise<ExamResult[]> => {
     await delay(500);
     if (userId === 'all') return mockExamResults;
-    return mockExamResults.filter(r => r.userId === userId || r.userId === 'current-user-id');
+    return mockExamResults.filter(r => r.userId === userId);
 };
 
 export const getExamResultDetails = async (resultId: string): Promise<{ result: ExamResult; exam: Exam } | null> => {
     await delay(700);
     const result = mockExamResults.find(r => r.id === resultId);
     if (!result) return null;
-    const exam = mockExams.find(e => e.id === result.examId);
-    if (!exam) return null; // Should not happen in real app
+    const snapshot = attemptService.findByResultId(resultId);
+    const exam = snapshot?.examSnapshot ?? mockExams.find(e => e.id === result.examId);
+    if (!exam) return null;
     return { result, exam };
 };
 

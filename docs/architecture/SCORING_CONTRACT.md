@@ -21,3 +21,12 @@ Code: `src/domain/assessment/scoring.ts`; tests: `tests/scoring.test.mjs`.
 - A new submission key is a new simulated attempt; this is **not** a real eligibility policy or authorization check.
 - The in-memory repository is not durable across reloads, is not multi-device, and must not be trusted for real users. Final server-side enforcement and attempts-per-assignment rules remain mandatory for a pilot.
 - `ExamResult.gradingStatus` is `final`, `needs-review`, or `unverified-demo` (for legacy seeded results). While review is pending, any number is an automatically awarded **provisional subtotal**, never a final grade or final percentage.
+
+## Prototype submission integration
+- Demo submissions now flow through the deterministic scoring engine and an in-memory attempt repository.
+- A stable per-mount attempt ID scopes retries by exam and synthetic student; the same key cannot submit altered answers.
+- The result keeps its own exam snapshot so later question bank edits cannot retroactively change the viewed attempt.
+- Changing to a fresh attempt ID currently creates a new attempt; assignment rules and rate limits are not implemented.
+- All identity, authorization, answer keys, idempotency enforcement, final grades and audit records must move to a trusted server before real pilots.
+- Old seeded results lack a grading audit and must be shown as unverified.
+- Client tab/paste observations are not proof of misconduct. Fake random face/noise incidents were removed.

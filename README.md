@@ -7,7 +7,7 @@ Evaluify is an **under-construction** Egypt-first education assessment concept. 
 - **Current:** local code preparation, synthetic data, architecture, unit tests, and demo flows.
 - **Not connected:** Neon, Vercel, payment processing, real student accounts, managed AI models, or a live backend.
 - **Legacy UI:** dashboards for corporate recruitment, interviews, and proctoring remain in the existing code. They are not approved Phase 1 scope or evidence that those features work.
-- **Mock data:** role switching and assessment APIs are simulations. The current exam submission UI still uses a legacy mock scoring path; the new deterministic scoring module is **not connected to it yet**.
+- **Mock data:** role switching and assessment APIs are simulations. New demo submissions use deterministic scoring and an idempotent in-memory attempt service; legacy seeded results remain clearly unverified demo records. This does not provide secure production grading.
 - **Privacy:** do not input real student information, access tokens, provider secrets, or private copyrighted question banks.
 
 ## Getting started (local code only)

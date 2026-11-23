@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getExamDetails, submitExam } from '../services/mockApi';
 import { Exam, Question, StudentAnswer, ProctoringEvent, Answer, QuestionType, TrueFalseJustificationAnswer } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ClockIcon } from '../components/icons';
 // FIX: Update import path for useLanguage
-import { useLanguage } from '../contexts/AuthContext';
+import { useAuth, useLanguage } from '../contexts/AuthContext';
 
 const translations = {
     en: {
@@ -36,6 +36,9 @@ const ExamTaker: React.FC = () => {
     const { examId } = useParams<{ examId: string }>();
     const navigate = useNavigate();
     const { lang } = useLanguage();
+    const { user } = useAuth();
+    const attemptIdRef = useRef<string>(crypto.randomUUID());
+    const submittingRef = useRef(false);
     const t = translations[lang];
 
     const [exam, setExam] = useState<Exam | null>(null);
@@ -47,17 +50,21 @@ const ExamTaker: React.FC = () => {
     const [proctoringEvents, setProctoringEvents] = useState<ProctoringEvent[]>([]);
 
     const handleSubmission = useCallback(async () => {
-        if (!examId || !exam) return;
+        if (!examId || !exam || !user || submittingRef.current) return;
+        submittingRef.current = true;
         setLoading(true);
         try {
-            const result = await submitExam(examId, answers, proctoringEvents);
+            const result = await submitExam(examId, answers, proctoringEvents, {
+                attemptId: attemptIdRef.current, userId: user.id, userName: user.name,
+            });
             navigate(`/examinee/result/${result.id}`);
         } catch (err) {
             console.error("Submission failed", err);
             setError("Failed to submit the exam. Please try again.");
+            submittingRef.current = false;
             setLoading(false);
         }
-    }, [examId, exam, answers, proctoringEvents, navigate]);
+    }, [examId, exam, answers, proctoringEvents, navigate, user]);
     
     useEffect(() => {
         if (!examId) return;
@@ -92,7 +99,7 @@ const ExamTaker: React.FC = () => {
         return () => clearTimeout(timer);
     }, [timeLeft, exam, loading, handleSubmission, t.timeUp]);
 
-    // Enhanced Proctoring Simulation
+    // Demo-only client tab/paste observations; not reliable proctoring evidence.
     useEffect(() => {
         const getTimestamp = () => (exam?.duration || 0) * 60 * 1000 - timeLeft * 1000;
 
@@ -114,24 +121,6 @@ const ExamTaker: React.FC = () => {
             }]);
         };
         
-        const eventInterval = setInterval(() => {
-            const randomEvent = Math.random();
-            if (randomEvent < 0.05) { // 5% chance every 20 seconds
-                 setProctoringEvents(prev => [...prev, {
-                    type: 'face_detection',
-                    timestamp: getTimestamp(),
-                    severity: 'high',
-                    details: 'Multiple faces detected'
-                }]);
-            } else if (randomEvent < 0.15) { // 10% chance
-                 setProctoringEvents(prev => [...prev, {
-                    type: 'noise_detection',
-                    timestamp: getTimestamp(),
-                    severity: 'low',
-                    details: 'Loud background noise detected'
-                }]);
-            }
-        }, 20000); // Check for random events every 20s
 
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -140,7 +129,6 @@ const ExamTaker: React.FC = () => {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('paste', handlePaste);
-            clearInterval(eventInterval);
         };
     }, [exam, timeLeft]);
 
@@ -305,6 +293,7 @@ const ExamTaker: React.FC = () => {
                         {currentQuestionIndex === exam.questions.length - 1 ? (
                              <button
                                 onClick={handleSubmitClick}
+                                disabled={loading || !user}
                                 className="px-8 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold"
                             >
                                 {t.submit}
