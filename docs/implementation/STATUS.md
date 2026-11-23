@@ -1,10 +1,10 @@
 # Implementation status — technical prototype
 
-Updated: 2026-11-23. Source of truth is GitHub Actions on \`main\`; do not treat a green build as product readiness.
+Updated: 2026-11-23. Source of truth is GitHub Actions on `main`; do not treat a green build as product readiness.
 
 | Stage | Current evidence | Not yet complete |
 | --- | --- | --- |
-| 00 — Foundation | Backup branch, dependency lock, \`npm ci\`, Vite/TypeScript CI, local Tailwind, unit tests | Browser E2E, visual/RTL regression, remaining legacy placeholder files |
+| 00 — Foundation | Backup branch, dependency lock, `npm ci`, Vite/TypeScript CI, local Tailwind, unit tests | Browser E2E, visual/RTL regression, remaining legacy placeholder files |
 | 01 — Architecture | Pure grading, versioned quiz snapshot, in-memory attempt repository with idempotent submission | Trusted backend, authorization, persistent repositories |
 | 02 — Question Bank | Synthetic CSV importer with source/rights basis, Draft → approval workflow, structural validation | Teacher research, real permission verification, editorial audit history, all question formats |
 | 03 — Builder | Independent immutable published-quiz contract | Published version persistence, UI integration, assignment authorization |
@@ -22,7 +22,7 @@ Updated: 2026-11-23. Source of truth is GitHub Actions on \`main\`; do not treat
 - The legacy interface still includes recruitment, proctoring and other deferred demos; simulated historical rows have no grading audit.
 - The local question approval action checks a declared rights basis, **not** the real existence or legal sufficiency of a license.
 - A passed test confirms only the exercised code path. Mobile behavior, live browser flows and production safety remain unverified.
-- The original repository state remains at \`backup/main-before-preparation-2026-11-23\`.
+- The original repository state remains at `backup/main-before-preparation-2026-11-23`.
 
 ## Next engineering acceptance batch
 
