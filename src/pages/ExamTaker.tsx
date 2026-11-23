@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getExamDetails, submitExam } from '../services/mockApi';
+import { getExamDetails, submitExam, getStudentAssignedQuiz, submitStudentAssignedQuiz } from '../services/mockApi';
 import { Exam, Question, StudentAnswer, ProctoringEvent, Answer, QuestionType, TrueFalseJustificationAnswer } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ClockIcon } from '../components/icons';
@@ -41,7 +41,7 @@ const translations = {
 };
 
 const ExamTaker: React.FC = () => {
-    const { examId } = useParams<{ examId: string }>();
+    const { examId, assignmentId } = useParams<{ examId?: string; assignmentId?: string }>();
     const navigate = useNavigate();
     const { lang } = useLanguage();
     const { user } = useAuth();
@@ -58,13 +58,18 @@ const ExamTaker: React.FC = () => {
     const [proctoringEvents, setProctoringEvents] = useState<ProctoringEvent[]>([]);
 
     const handleSubmission = useCallback(async () => {
-        if (!examId || !exam || !user || submittingRef.current) return;
+        if ((!examId && !assignmentId) || !exam || !user || submittingRef.current) return;
         submittingRef.current = true;
         setLoading(true);
         try {
-            const result = await submitExam(examId, answers, proctoringEvents, {
-                attemptId: attemptIdRef.current, userId: user.id, userName: user.name,
-            });
+            const result = assignmentId
+                ? await submitStudentAssignedQuiz({
+                    assignmentId, attemptId: attemptIdRef.current,
+                    studentId: user.id, studentName: user.name, answers,
+                })
+                : await submitExam(examId!, answers, proctoringEvents, {
+                    attemptId: attemptIdRef.current, userId: user.id, userName: user.name,
+                });
             navigate(`/examinee/result/${result.id}`);
         } catch (err) {
             console.error("Submission failed", err);
@@ -72,13 +77,37 @@ const ExamTaker: React.FC = () => {
             submittingRef.current = false;
             setLoading(false);
         }
-    }, [examId, exam, answers, proctoringEvents, navigate, user]);
+    }, [examId, assignmentId, exam, answers, proctoringEvents, navigate, user]);
     
     useEffect(() => {
-        if (!examId) return;
+        if (!examId && !assignmentId) return;
+        let active = true;
         const fetchExam = async () => {
             try {
-                const data = await getExamDetails(examId);
+                setLoading(true);
+                setError(null);
+                // A new route represents a fresh local attempt with a fresh idempotency key.
+                attemptIdRef.current = crypto.randomUUID();
+                submittingRef.current = false;
+                setAnswers({});
+                setCurrentQuestionIndex(0);
+                let data: Exam | null;
+                if (assignmentId) {
+                    if (!user) throw new Error('A demo student account is required');
+                    const safe = await getStudentAssignedQuiz(assignmentId, user.id);
+                    // Only display fields are present; no correct answers are returned.
+                    data = {
+                        id: safe.quizId, ownerId: 'demo-assignment',
+                        title: safe.title, description: '', duration: safe.duration,
+                        difficulty: 'Easy', questionCount: safe.questions.length,
+                        questions: safe.questions.map(q => ({
+                            ...q, ownerId: 'demo-assignment', tags: [], correctAnswer: null,
+                        })),
+                    };
+                } else {
+                    data = await getExamDetails(examId!);
+                }
+                if (!active) return;
                 if (data) {
                     setExam(data);
                     setTimeLeft(data.duration * 60);
@@ -86,13 +115,14 @@ const ExamTaker: React.FC = () => {
                     setError(t.notFound);
                 }
             } catch (err) {
-                setError("Failed to load exam details.");
+                if (active) setError(err instanceof Error ? err.message : 'Failed to load assessment');
             } finally {
-                setLoading(false);
+                if (active) setLoading(false);
             }
         };
-        fetchExam();
-    }, [examId, t.notFound]);
+        void fetchExam();
+        return () => { active = false; };
+    }, [examId, assignmentId, user?.id, t.notFound]);
 
     useEffect(() => {
         if (!exam || loading) return;
