@@ -1,87 +1,17 @@
 import SitePageLayout from '../components/SitePageLayout';
 import { useLanguage } from '../contexts/AuthContext';
-
-const translations = {
-    en: {
-        title: "Seamless Integrations",
-        description: "Connect evaluify with your existing Learning Management System (LMS), Student Information System (SIS), or Applicant Tracking System (ATS). Our robust API and pre-built connectors make integration simple and efficient.",
-        apiTitle: "Powerful API for Custom Solutions",
-        apiDescription: "Build custom workflows and integrate assessment data directly into your applications with our comprehensive, easy-to-use REST API.",
-        viewDocs: "View API Docs"
-    },
-    ar: {
-        title: "تكاملات سلسة",
-        description: "اربط منصة evaluify بسهولة مع أنظمة إدارة التعلم (LMS)، أنظمة معلومات الطلاب (SIS)، أو أنظمة تتبع المتقدمين (ATS). واجهة برمجة التطبيقات (API) القوية والموصلات الجاهزة لدينا تجعل التكامل بسيطًا وفعالًا.",
-        apiTitle: "API قوي لحلول مخصصة",
-        apiDescription: "أنشئ تدفقات عمل مخصصة وادمج بيانات التقييم مباشرة في تطبيقاتك باستخدام واجهة REST API الشاملة وسهلة الاستخدام.",
-        viewDocs: "عرض توثيق الـ API"
-    }
-};
-
-const integrations = ['Moodle', 'Canvas', 'Blackboard', 'Workday', 'Greenhouse', 'Slack', 'Microsoft Teams', 'Zapier'];
+import { Link } from 'react-router-dom';
 
 const IntegrationsPage = () => {
-    const { lang } = useLanguage();
-    const t = translations[lang];
-
-    return (
-        <SitePageLayout>
-            <main>
-                 <header className="bg-white dark:bg-slate-900 py-16">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-slate-100">{t.title}</h1>
-                        <p className="mt-4 text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                            {t.description}
-                        </p>
-                    </div>
-                </header>
-
-                <section className="py-16 bg-slate-50 dark:bg-slate-950">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                            {integrations.map(name => (
-                                <div key={name} className="flex items-center justify-center p-6 bg-white dark:bg-slate-800/50 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
-                                    <span className="text-lg font-semibold text-slate-700 dark:text-slate-300">{name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-                
-                <section className="py-20 bg-white dark:bg-slate-900">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h2 className="text-3xl font-bold">{t.apiTitle}</h2>
-                            <p className="mt-4 text-slate-600 dark:text-slate-300">{t.apiDescription}</p>
-                            <button className="mt-6 bg-primary-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors">
-                                {t.viewDocs}
-                            </button>
-                        </div>
-                        <div className="bg-slate-900 rounded-xl p-4 font-mono text-sm text-sky-300 overflow-x-auto">
-                            <pre>
-                                <code>
-{`
-// POST /v1/assessments
-{
-  "name": "Senior React Developer Test",
-  "duration": 60,
-  "proctoringLevel": "high",
-  "questions": [
-    {
-      "type": "coding",
-      "prompt": "Build a custom hook for..."
-    }
-  ]
-}
-`}
-                                </code>
-                            </pre>
-                        </div>
-                    </div>
-                </section>
-            </main>
-        </SitePageLayout>
-    );
+  const {lang}=useLanguage();const ar=lang==='ar';
+  return <SitePageLayout><main className="min-h-[60vh] container mx-auto px-4 py-24 max-w-3xl text-center space-y-6">
+    <p className="text-primary-600 dark:text-primary-300 font-semibold uppercase text-sm tracking-widest">{ar?'تكاملات مخطط لها':'INTEGRATION ROADMAP'}</p>
+    <h1 className="text-4xl font-bold">{ar?'لا توجد تكاملات خارجية إنتاجية حاليًا':'No Production Integrations Yet'}</h1>
+    <p className="text-lg text-slate-600 dark:text-slate-300">{ar
+      ? 'يفصل النموذج الحالي منطق التقييم عن تخزين البيانات، تمهيدًا لإضافة API موثوق وتكاملات تعليمية مستقبلًا عند إثبات الحاجة. لم يتم إطلاق موصلات Moodle أو Canvas أو غيرها، ولا توجد واجهة REST API عامة متاحة.'
+      : 'The prototype separates assessment rules from storage so a trusted API and education-system integrations can be evaluated later. No Moodle, Canvas, third-party connector or public REST API is currently available.'}</p>
+    <p className="text-slate-500 text-sm">{ar?'ربط الأنظمة يعتمد على التحقق من احتياج المستخدمين وخصوصية الطلاب وتحديد بنية الخادم قبل أي إعلان رسمي.':'Integration priorities depend on teacher validation, learner privacy and a trusted backend decision.'}</p>
+    <Link to="/" className="inline-block rounded-lg bg-primary-600 text-white px-5 py-3 font-semibold">{ar?'العودة للرئيسية':'Back to prototype'}</Link>
+  </main></SitePageLayout>;
 };
-
 export default IntegrationsPage;
