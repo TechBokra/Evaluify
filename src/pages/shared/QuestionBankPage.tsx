@@ -3,8 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 // FIX: Update import paths to remove .tsx extension and align with project structure.
 import DashboardLayout from '../../components/DashboardLayout';
 import useNavLinks from '../../hooks/useNavLinks';
-import { getQuestionBank, addQuestionToBank, updateQuestionInBank, deleteQuestionFromBank } from '../../services/mockApi'; 
-import { Question } from '../../types';
+import { getQuestionBank, addQuestionToBank, updateQuestionInBank, deleteQuestionFromBank, approveQuestionInBank, importQuestionsCsvToBank } from '../../services/mockApi'; 
+import { Question, QuestionStatus } from '../../types';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { PlusCircleIcon, PencilIcon, TrashIcon, BookOpenIcon } from '../../components/icons';
 import EmptyState from '../../components/EmptyState';
@@ -26,6 +26,7 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);
+    const [importing, setImporting] = useState(false);
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -69,6 +70,33 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
         }
     };
     
+
+    const handleApproveQuestion = async (question: Question) => {
+        try {
+            const approved = await approveQuestionInBank(question.id, ownerId);
+            setQuestions(prev => prev.map(q => q.id === approved.id ? approved : q));
+            addNotification('Question approved for the local demo.', 'success');
+        } catch (error) {
+            addNotification(error instanceof Error ? error.message : 'Question could not be approved.', 'error');
+        }
+    };
+
+    const handleCsvFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.currentTarget.files?.[0];
+        if (!file || importing) return;
+        setImporting(true);
+        try {
+            const items = await importQuestionsCsvToBank(ownerId, await file.text());
+            setQuestions(prev => [...prev, ...items]);
+            addNotification(items.length + ' questions imported as drafts for review.', 'success');
+        } catch (error) {
+            addNotification(error instanceof Error ? error.message : 'CSV import failed.', 'error');
+        } finally {
+            event.currentTarget.value = '';
+            setImporting(false);
+        }
+    };
+
     const handleDeleteQuestion = async (questionId: string) => {
         if (window.confirm("Are you sure you want to delete this question?")) {
             try {
@@ -99,6 +127,19 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
         <DashboardLayout navLinks={navLinks} pageTitle={pageTitle} headerActions={headerActions}>
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg">
                 <p className="text-slate-600 dark:text-slate-400 mb-4">{description}</p>
+
+                <div className="mb-5 flex flex-wrap items-center gap-3 p-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg">
+                    <label className="text-sm font-semibold text-primary-600 cursor-pointer">
+                        {importing ? 'Importing…' : 'Import CSV → draft questions'}
+                        <input type="file" accept=".csv,text/csv" onChange={handleCsvFile}
+                            disabled={importing} className="block text-xs text-slate-500 mt-2" />
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-300">
+                        Synthetic content only. Include rights_basis; imported questions require teacher approval.
+                        See docs/implementation/QUESTION_BANK_IMPORT.md.
+                    </p>
+                </div>
+
                 <input
                     type="text"
                     placeholder="Search questions by text or tags..."
@@ -120,6 +161,7 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
                                             <th scope="col" className="px-6 py-3">Type</th>
                                             <th scope="col" className="px-6 py-3">Category</th>
                                             <th scope="col" className="px-6 py-3">Points</th>
+                                            <th scope="col" className="px-6 py-3">Review</th>
                                             <th scope="col" className="px-6 py-3">Actions</th>
                                         </tr>
                                     </thead>
@@ -130,7 +172,11 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
                                                 <td className="px-6 py-4">{q.type}</td>
                                                 <td className="px-6 py-4">{q.category} / {q.subCategory}</td>
                                                 <td className="px-6 py-4">{q.points}</td>
+                                                <td className="px-6 py-4">{q.status ?? 'legacy demo'}</td>
                                                 <td className="px-6 py-4 flex items-center gap-2">
+                                                     {q.status !== QuestionStatus.Approved && (
+                                                         <button onClick={() => handleApproveQuestion(q)} className="px-2 py-1 text-xs font-semibold text-green-700 border border-green-300 rounded" title="Review and approve">Approve</button>
+                                                     )}
                                                      <button onClick={() => handleOpenEditModal(q)} className="p-2 text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full" title="Edit"><PencilIcon className="w-4 h-4" /></button>
                                                      <button onClick={() => handleDeleteQuestion(q.id)} className="p-2 text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full" title="Delete"><TrashIcon className="w-4 h-4" /></button>
                                                 </td>

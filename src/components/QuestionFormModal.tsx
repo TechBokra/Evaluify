@@ -22,6 +22,9 @@ const translations = {
         questionType: "Question Type",
         points: "Points",
         tags: "Tags (comma-separated)",
+        source: "Content source or permission reference",
+        rights: "Right to use this content",
+        skills: "Skills (separate with |)",
         category: "Category",
         subCategory: "Subcategory",
         selectCategory: "Select Category",
@@ -58,6 +61,9 @@ const translations = {
         questionType: "نوع السؤال",
         points: "الدرجات",
         tags: "الوسوم (مفصولة بفاصلة)",
+        source: "المصدر أو مرجع الإذن باستخدام المحتوى",
+        rights: "أساس حق استخدام المحتوى",
+        skills: "المهارات (افصل بينها بعلامة |)",
         category: "التصنيف الرئيسي",
         subCategory: "التصنيف الفرعي",
         selectCategory: "اختر تصنيفًا رئيسيًا",
@@ -166,7 +172,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ isOpen, onClose, 
         case QuestionType.Ordering: q = { ...baseQuestion, options: ['', ''], correctAnswer: [] }; break;
         case QuestionType.Matching: q = { ...baseQuestion, prompts: ['', ''], options: ['', ''], correctAnswer: [] }; break;
     }
-    setFormData(q as EditableQuestion);
+    setFormData(prev => ({ ...prev, ...q }));
   };
 
   const handleAiAssist = async () => {
@@ -208,6 +214,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ isOpen, onClose, 
   const validateForm = () => {
       const q = formData;
       if (!q.text || !q.category || !q.subCategory || q.points <= 0) return false;
+      if (!q.rightsBasis || (q.rightsBasis !== 'original' && !q.sourceTitle?.trim())) return false;
       
       switch (q.type) {
         case QuestionType.MultipleChoice:
@@ -267,6 +274,36 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ isOpen, onClose, 
                 <div>
                     <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.points}</label>
                     <input type="number" placeholder="Points" value={q.points} onChange={e => handleChange('points', parseInt(e.target.value))} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md w-full" required />
+                </div>
+            </div>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-amber-50 dark:bg-slate-700/40">
+                <div>
+                    <label className="block text-sm font-medium mb-1">{t.rights}</label>
+                    <select value={q.rightsBasis ?? ''} required
+                        onChange={e => handleChange('rightsBasis', e.target.value)}
+                        className="w-full p-2 rounded-md bg-white dark:bg-slate-700">
+                        <option value="" disabled>--</option>
+                        <option value="original">Original work / من تأليفي</option>
+                        <option value="licensed">Licensed / بموجب إذن</option>
+                        <option value="open-license">Open license / ترخيص مفتوح</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1">{t.source}</label>
+                    <input type="text" value={q.sourceTitle ?? ''}
+                        onChange={e => handleChange('sourceTitle', e.target.value)}
+                        placeholder="Author, URL, license or permission"
+                        required={!!q.rightsBasis && q.rightsBasis !== 'original'}
+                        className="w-full p-2 rounded-md bg-white dark:bg-slate-700" />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1">{t.skills}</label>
+                    <input type="text" value={(q.skillTags ?? []).join('|')}
+                        onChange={e => handleChange('skillTags', e.target.value.split('|').map(s => s.trim()).filter(Boolean))}
+                        placeholder="fractions|addition"
+                        className="w-full p-2 rounded-md bg-white dark:bg-slate-700" />
                 </div>
             </div>
 

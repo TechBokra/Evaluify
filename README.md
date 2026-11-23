@@ -40,3 +40,7 @@ No cloud account or AI API key is needed for the mock prototype. Tailwind CSS no
 - [Examify reuse inventory](docs/reuse/EXAMIFY_AUDIT.md)
 
 **Research governance:** the project F00–F08 research package and pre-investment decision memo remain the strategic references. Their hypotheses are not customer validation or approval for a full commercial build.
+
+## Local question bank CSV import
+
+The teacher-side question bank can import synthetic CSV files into **Draft** status; manual approval is required after structural and rights-basis review. See [the sample and format](docs/implementation/QUESTION_BANK_IMPORT.md). Nothing is uploaded to a cloud service.
