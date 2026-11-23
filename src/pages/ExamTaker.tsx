@@ -18,6 +18,10 @@ const translations = {
         next: "Next",
         previous: "Previous",
         submit: "Submit Exam",
+        orderingHelp: "Select the item for each position.",
+        matchingHelp: "Match each prompt to one option.",
+        selectItem: "Choose an item",
+        position: "Position",
     },
     ar: {
         loading: "جاري تحميل الاختبار...",
@@ -29,6 +33,10 @@ const translations = {
         next: "التالي",
         previous: "السابق",
         submit: "تسليم الاختبار",
+        orderingHelp: "اختر العنصر المناسب لكل ترتيب.",
+        matchingHelp: "طابق كل عبارة مع الإجابة المناسبة.",
+        selectItem: "اختر عنصرًا",
+        position: "الترتيب",
     }
 };
 
@@ -249,6 +257,59 @@ const ExamTaker: React.FC = () => {
                         />
                      </div>
                 );
+            case QuestionType.Ordering: {
+                const selected = Array.isArray(userAnswer) ? userAnswer : [];
+                // Author options are stored in correct sequence; reverse the display
+                // so the student is not handed the correct ordering in the UI.
+                const options = [...(q.options ?? [])].reverse();
+                if (options.length < 2) return <p>{t.selectItem}</p>;
+                return (
+                    <div className="space-y-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{t.orderingHelp}</p>
+                        {options.map((_, position) => (
+                            <label key={position} className="flex flex-col gap-2 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                                <span className="font-semibold">{t.position} {position + 1}</span>
+                                <select aria-label={`${t.position} ${position + 1}`} value={selected[position] ?? ''}
+                                    onChange={event => {
+                                        const next = Array.from({length: options.length}, (_, i) => selected[i] ?? '');
+                                        next[position] = event.target.value;
+                                        handleAnswerChange(q.id, next);
+                                    }}
+                                    className="rounded-md border bg-white dark:bg-slate-700 p-3">
+                                    <option value="">{t.selectItem}</option>
+                                    {options.map(item => <option key={item} value={item}>{item}</option>)}
+                                </select>
+                            </label>
+                        ))}
+                    </div>
+                );
+            }
+            case QuestionType.Matching: {
+                const selected = Array.isArray(userAnswer) ? userAnswer : [];
+                const prompts = q.prompts ?? [];
+                const options = q.options ?? [];
+                if (!prompts.length || !options.length) return <p>{t.selectItem}</p>;
+                return (
+                    <div className="space-y-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{t.matchingHelp}</p>
+                        {prompts.map((prompt, index) => (
+                            <label key={index} className="flex flex-col gap-2 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                                <span className="font-semibold">{prompt}</span>
+                                <select aria-label={prompt} value={selected[index] ?? ''}
+                                    onChange={event => {
+                                        const next = Array.from({length: prompts.length}, (_, i) => selected[i] ?? '');
+                                        next[index] = event.target.value;
+                                        handleAnswerChange(q.id, next);
+                                    }}
+                                    className="rounded-md border bg-white dark:bg-slate-700 p-3">
+                                    <option value="">{t.selectItem}</option>
+                                    {options.map(item => <option key={item} value={item}>{item}</option>)}
+                                </select>
+                            </label>
+                        ))}
+                    </div>
+                );
+            }
             default:
                 return <p>Question type '{q.type}' is not supported for taking exams yet.</p>
         }
