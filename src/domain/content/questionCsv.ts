@@ -56,6 +56,7 @@ function csvRows(content: string): string[][] {
       if (char === ',') {
         row.push(field);
         field = '';
+        afterQuote = false;
       } else {
         addRow();
         if (char === '\r' && source[i + 1] === '\n') i++;
