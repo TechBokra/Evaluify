@@ -35,6 +35,8 @@ import LiveInterviewPage from './pages/LiveInterviewPage';
 import TeacherAIToolsPage from './pages/TeacherAIToolsPage';
 import TeacherReportsPage from './pages/TeacherReportsPage';
 import TeacherReviewPage from './pages/TeacherReviewPage';
+import TeacherAssignmentsPage from './pages/TeacherAssignmentsPage';
+import StudentAssignmentsPage from './pages/StudentAssignmentsPage';
 import TestBuilderPage from './pages/TestBuilderPage';
 
 // Examinee pages
@@ -172,6 +174,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/ai-tools" element={<TeacherAIToolsPage />} />
                 <Route path="/reports" element={<TeacherReportsPage />} />
                 <Route path="/teacher/reviews" element={<TeacherReviewPage />} />
+                <Route path="/teacher/assignments" element={<TeacherAssignmentsPage />} />
                 <Route path="/teacher/reviews/:resultId" element={<TeacherReviewPage />} />
             </Route>
 
@@ -205,6 +208,8 @@ const AppRoutes: React.FC = () => {
             <Route element={<ProtectedRoute allowedRoles={[UserRole.Examinee]} />}>
                 <Route path="/examinee" element={<ExamineeDashboard />} />
                 <Route path="/examinee/exam/:examId" element={<ExamTaker />} />
+                <Route path="/examinee/assignments" element={<StudentAssignmentsPage />} />
+                <Route path="/examinee/assignment/:assignmentId" element={<ExamTaker />} />
                 <Route path="/examinee/results" element={<ExamineeResultsPage />} />
                 <Route path="/examinee/result/:resultId" element={<ExamineeExamReviewPage />} />
             </Route>

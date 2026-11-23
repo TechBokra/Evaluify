@@ -25,6 +25,8 @@ const navTranslations = {
         aiTools: 'AI Tools',
         reports: 'Reports',
         teacherReviews: 'Teacher Reviews',
+        assignments: 'Publish & Assign',
+        myAssignments: 'My Assignments',
         questionBank: 'Question Bank',
         analytics: 'Analytics',
         results: 'Results',
@@ -49,6 +51,8 @@ const navTranslations = {
         aiTools: 'أدوات الذكاء الاصطناعي',
         reports: 'التقارير',
         teacherReviews: 'مراجعة الإجابات',
+        assignments: 'نشر وتكليف الاختبارات',
+        myAssignments: 'تكليفاتي',
         questionBank: 'بنك الأسئلة',
         analytics: 'التحليلات',
         results: 'النتائج',
@@ -81,6 +85,7 @@ const useNavLinks = (): NavLink[] => {
         { path: '/ai-tools', icon: SparklesIcon, label: t.aiTools },
         { path: '/reports', icon: DocumentReportIcon, label: t.reports },
         { path: '/teacher/reviews', icon: CheckCircleIcon, label: t.teacherReviews },
+        { path: '/teacher/assignments', icon: DocumentTextIcon, label: t.assignments },
         { path: '/question-bank', icon: BookOpenIcon, label: t.questionBank },
         { path: '/analytics', icon: ChartBarIcon, label: t.analytics },
     ];
@@ -115,6 +120,7 @@ const useNavLinks = (): NavLink[] => {
     const examineeLinks: NavLink[] = [
         { path: '/examinee', icon: ChartBarIcon, label: t.examineeDashboard },
         { path: '/examinee/results', icon: CheckCircleIcon, label: t.myResults },
+        { path: '/examinee/assignments', icon: BookOpenIcon, label: t.myAssignments },
     ];
     
     switch (userRole) {
