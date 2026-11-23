@@ -38,9 +38,18 @@ No cloud account or AI API key is needed for the mock prototype. Tailwind CSS no
 - [Architecture decision](docs/architecture/ADR-0001-local-first.md)
 - [Scoring contract](docs/architecture/SCORING_CONTRACT.md)
 - [Examify reuse inventory](docs/reuse/EXAMIFY_AUDIT.md)
+- [Local Teacher → Student → Review smoke test](docs/implementation/LOCAL_DEMO_WALKTHROUGH.md)
+- [Implementation status and remaining gates](docs/implementation/STATUS.md)
 
 **Research governance:** the project F00–F08 research package and pre-investment decision memo remain the strategic references. Their hypotheses are not customer validation or approval for a full commercial build.
 
 ## Local question bank CSV import
 
 The teacher-side question bank can import synthetic CSV files into **Draft** status; manual approval is required after structural and rights-basis review. See [the sample and format](docs/implementation/QUESTION_BANK_IMPORT.md). Nothing is uploaded to a cloud service.
+
+## Newly connected local demo flows
+
+- Teacher: `/#/teacher/assignments` publishes teacher-owned approved quiz versions and assigns them to a synthetic group.
+- Student: `/#/examinee/assignments` shows only assignments for the synthetic examinee account. Starting an assignment uses a student preview **without answer keys**.
+- Teacher: `/#/teacher/reviews` reviews pending subjective items, records feedback and revisioned decisions, and finalizes only after all pending reviews.
+- All three rely on **in-memory, single-tab-only mock state**. They are not production services and the end-to-end click flow still needs browser acceptance testing.
