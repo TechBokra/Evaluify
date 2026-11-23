@@ -8,8 +8,10 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useTheme } from '../../contexts/AuthContext';
 
-// Since Chart.js is loaded from a CDN, we need to declare it to TypeScript
-declare var Chart: any;
+// Bundle Chart.js from npm rather than relying on a global CDN script.
+import Chart from 'chart.js/auto';
+// Legacy chart configuration will be typed more strictly during UI hardening.
+const ChartRenderer: any = Chart;
 
 interface AnalyticsPageProps {
     pageTitle: string;
@@ -48,7 +50,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ pageTitle, description })
     }, []);
 
     useEffect(() => {
-        if (!analyticsData || loading || typeof Chart === 'undefined') return;
+        if (!analyticsData || loading || typeof ChartRenderer === 'undefined') return;
 
         // Common chart options
         const getChartOptions = (title: string) => {
@@ -76,7 +78,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ pageTitle, description })
         
         // Scores Over Time Chart (Line)
         if (scoresOverTimeChartRef.current) {
-            chartInstances.current.scoresOverTime = new Chart(scoresOverTimeChartRef.current, {
+            chartInstances.current.scoresOverTime = new ChartRenderer(scoresOverTimeChartRef.current, {
                 type: 'line',
                 data: {
                     labels: analyticsData.scoresOverTime.labels,
@@ -98,7 +100,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ pageTitle, description })
             const options = getChartOptions('Overall Pass/Fail Rate');
             // FIX: Corrected the syntax for the `delete` operator to properly remove the 'scales' property from the chart options object, resolving the 'operand must be a property reference' error.
             delete (options as any).scales; // Doughnut chart doesn't need scales
-             chartInstances.current.passFail = new Chart(passFailChartRef.current, {
+             chartInstances.current.passFail = new ChartRenderer(passFailChartRef.current, {
                 type: 'doughnut',
                 data: {
                     labels: ['Pass', 'Fail'],
@@ -118,7 +120,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ pageTitle, description })
         if (categoryPerfChartRef.current) {
              const options = getChartOptions('Performance by Category');
              (options as any).scales = { r: { pointLabels: { color: isDarkMode ? '#cbd5e1' : '#475569' }, grid: { color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' } } };
-             chartInstances.current.categoryPerf = new Chart(categoryPerfChartRef.current, {
+             chartInstances.current.categoryPerf = new ChartRenderer(categoryPerfChartRef.current, {
                 type: 'radar',
                 data: {
                     labels: analyticsData.performanceByCategory.labels,
@@ -136,7 +138,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ pageTitle, description })
         
         // Avg Score by Difficulty (Bar)
         if (difficultyScoreChartRef.current) {
-             chartInstances.current.difficultyScore = new Chart(difficultyScoreChartRef.current, {
+             chartInstances.current.difficultyScore = new ChartRenderer(difficultyScoreChartRef.current, {
                 type: 'bar',
                 data: {
                     labels: analyticsData.avgScoreByDifficulty.labels,

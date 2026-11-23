@@ -1,8 +1,18 @@
+/**
+ * Local prototype boundary for a deferred interview feature.
+ *
+ * No provider SDK is initialized in the browser and no credentials are read.
+ * This intentionally fails closed until a server-side provider gateway is
+ * approved and tested in a later project phase.
+ */
+type GenerateContentParams = { model: string; contents: string };
 
-import { GoogleGenAI } from "@google/genai";
-
-// Centralized singleton instance of the GoogleGenAI client.
-// This ensures the client is initialized only once throughout the application's lifecycle.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = {
+  models: {
+    async generateContent(_request: GenerateContentParams): Promise<{ text?: string }> {
+      throw new Error('Live AI is disabled for the Evaluify local technical prototype.');
+    },
+  },
+};
 
 export default ai;

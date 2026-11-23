@@ -34,5 +34,11 @@ Only stages that are verified should be marked complete.
 - GitHub Actions reported green for the first six scoring unit tests and full TypeScript/Vite build after fixing pre-existing build errors.
 - A one-time GitHub runner created and committed the dependency lockfile; clean `npm ci`, tests, and build succeeded during lockfile creation.
 - Quality CI now uses `npm ci` and caches npm to enforce committed dependency resolution.
-- Removed only the empty root-level files that had populated equivalents in the active `src/` tree; nonempty duplicates remain until their role is reviewed.
+- Removed 44 empty root-level placeholder files after confirming the active app loads from `src/` and the build remained green; some also have empty placeholders in `src/`. Nonempty root duplicates remain pending review.
 - Cloud services, live AI, and live student data remain out of scope.
+
+## Browser dependency hardening
+- The redundant `aistudiocdn.com` import map was removed; Vite handles npm imports.
+- The Analytics page now imports Chart.js from npm, not the global Chart.js CDN.
+- The deferred Gemini interview boundary explicitly rejects live calls without reading browser credentials; no external AI is configured.
+- Tailwind's dev-time CDN and the unrelated Jitsi external script still need a subsequent controlled migration.

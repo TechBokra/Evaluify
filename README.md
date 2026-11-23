@@ -15,13 +15,13 @@ Evaluify is an **under-construction** Egypt-first education assessment concept. 
 Use Node.js 22 and npm:
 
 ```sh
-npm install
+npm ci
 npm run dev
 npm run test:unit
 npm run build
 ```
 
-No cloud account or AI API key is needed for the mock prototype. The current HTML still includes third-party CDNs and a Jitsi script, so the UI is **not fully offline**. These dependencies are tracked for removal/normalization during hardening. Never expose AI credentials through client-side Vite variables.
+No cloud account or AI API key is needed for the mock prototype. The current HTML still includes a Tailwind development CDN and an external Jitsi script, so the UI is **not fully offline**. Chart.js and React now resolve through npm, and the obsolete import map was removed. These dependencies are tracked for removal/normalization during hardening. The deferred interview AI integration fails closed in the browser; do not put AI credentials in Vite variables.
 
 ## Source of truth
 
