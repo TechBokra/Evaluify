@@ -82,7 +82,8 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
     };
 
     const handleCsvFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.currentTarget.files?.[0];
+        const input = event.currentTarget;
+        const file = input.files?.[0];
         if (!file || importing) return;
         setImporting(true);
         try {
@@ -92,7 +93,7 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
         } catch (error) {
             addNotification(error instanceof Error ? error.message : 'CSV import failed.', 'error');
         } finally {
-            event.currentTarget.value = '';
+            input.value = '';
             setImporting(false);
         }
     };
