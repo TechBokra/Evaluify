@@ -27,14 +27,25 @@ import { asQuestionDraft, approveQuestionDraft } from '../domain/questions/edito
 import { parseQuestionsCsv } from '../domain/content/questionCsv';
 import { createAttemptService, MemoryAttemptRepository } from '../domain/assessment/attempts';
 import { createReviewCase, recordManualReview, type ReviewCase, type ReviewDecision } from '../domain/assessment/review';
+import { publishQuiz } from '../domain/assessment/publication';
+import { createDemoAssignmentService, type AssignedSubmission } from '../domain/assignments/assignments';
 
 const attemptService = createAttemptService(new MemoryAttemptRepository());
 const reviewCases = new Map<string, ReviewCase>();
+const assignedQuizService = createDemoAssignmentService();
+// Synthetic demo group: one student account (user2), one teacher-owned cohort.
+assignedQuizService.createGroup({
+    id: 'demo-group-1', ownerId: 'teacher-1',
+    name: 'Synthetic demo students', studentIds: ['user2'],
+});
+const teacherAssignmentIds: string[] = [];
+const nextPublicationVersion = new Map<string, number>();
+const assignedAttemptRecords = new Map<string, {result: ExamResult; examSnapshot: Exam}>();
 
 // --- MOCK DATABASE ---
 
 let mockQuestions: Question[] = [
-    { id: 'q1', ownerId: 'teacher-1', text: 'What is the capital of France?', type: QuestionType.ShortAnswer, correctAnswer: 'Paris', points: 5, tags: ['geography'], category: 'Geography', subCategory: 'Europe', status: QuestionStatus.Approved },
+    { id: 'q1', ownerId: 'teacher-1', text: 'What is the capital of France?', type: QuestionType.ShortAnswer, correctAnswer: 'Paris', points: 5, tags: ['geography'], category: 'Geography', subCategory: 'Europe', status: QuestionStatus.Approved, rightsBasis: 'original' },
     { id: 'q2', ownerId: 'teacher-1', text: 'Which of these are React hooks?', type: QuestionType.MultipleSelect, options: ['useState', 'useQuery', 'useClass', 'useEffect'], correctAnswer: ['useState', 'useEffect'], points: 10, tags: ['react', 'frontend'], category: 'Programming', subCategory: 'React', status: QuestionStatus.Approved },
     { id: 'q3', ownerId: 'corp-1', text: 'True or False: `const` variables can be reassigned.', type: QuestionType.TrueFalse, options: ['True', 'False'], correctAnswer: 'False', points: 5, tags: ['javascript'], category: 'Programming', subCategory: 'JavaScript', status: QuestionStatus.Approved },
     { id: 'q4', ownerId: 'admin-1', text: 'What is the time complexity of a binary search?', type: QuestionType.MultipleChoice, options: ['O(n)', 'O(log n)', 'O(n^2)', 'O(1)'], correctAnswer: 'O(log n)', points: 10, tags: ['algorithms', 'cs'], category: 'Computer Science', subCategory: 'Algorithms', status: QuestionStatus.Approved },
@@ -203,17 +214,22 @@ export const getExamResultDetails = async (resultId: string): Promise<{ result: 
     await delay(700);
     const result = mockExamResults.find(r => r.id === resultId);
     if (!result) return null;
-    const snapshot = attemptService.findByResultId(resultId);
+    const snapshot = attemptService.findByResultId(resultId) ?? assignedAttemptRecords.get(resultId);
     const exam = snapshot?.examSnapshot ?? mockExams.find(e => e.id === result.examId);
     if (!exam) return null;
-    return { result, exam };
+    // Never send model answers on pending or unverified results.
+    const safeExam = result.gradingStatus === 'final' ? structuredClone(exam) : {
+        ...structuredClone(exam),
+        questions: exam.questions.map(question => ({...structuredClone(question), correctAnswer: null})),
+    };
+    return { result: structuredClone(result), exam: safeExam };
 };
 
 
 
 // Local teacher-review demonstration. These are NOT secure identity checks or durable records.
 const demoTeacherRecord = (resultId: string, ownerId: string) => {
-    const attempt = attemptService.findByResultId(resultId);
+    const attempt = attemptService.findByResultId(resultId) ?? assignedAttemptRecords.get(resultId);
     if (!attempt || attempt.examSnapshot.ownerId !== ownerId) return null;
     return attempt;
 };
@@ -261,6 +277,76 @@ export const submitTeacherReview = async (params: {
     reviewCases.set(params.resultId, structuredClone(next));
     mockExamResults[index] = structuredClone(next.result);
     return structuredClone(next);
+};
+
+
+// Synthetic published-quiz assignment flow (no backend, real identities or persistence).
+export interface DemoTeacherAssignmentSummary {
+    id: string;
+    title: string;
+    version: number;
+    groupName: string;
+    opensAt: string;
+    closesAt: string;
+    maxAttempts: number;
+}
+export const getTeacherDemoAssignments = async (ownerId: string): Promise<DemoTeacherAssignmentSummary[]> => {
+    await delay(50);
+    return teacherAssignmentIds.map(id => assignedQuizService.getTeacherAssignment(id, ownerId))
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+        .map(item => ({
+            id: item.id, title: item.quizSnapshot.title, version: item.quizVersion,
+            groupName: 'Synthetic demo students',
+            opensAt: item.opensAt, closesAt: item.closesAt, maxAttempts: item.maxAttempts,
+        }));
+};
+export const publishAndAssignDemoQuiz = async (params: {
+    examId: string; ownerId: string; opensAt: string; closesAt: string; maxAttempts: number;
+}): Promise<DemoTeacherAssignmentSummary> => {
+    const exam = mockExams.find(item => item.id === params.examId && item.ownerId === params.ownerId);
+    if (!exam) throw new Error('Teacher-owned quiz not found');
+    if (exam.questions.some(q => q.ownerId !== params.ownerId)) {
+        throw new Error('An assessment cannot publish questions owned by another account');
+    }
+    if (exam.questions.some(q => q.status !== QuestionStatus.Approved || !q.rightsBasis)) {
+        throw new Error('Review and approve questions with declared content rights before publication');
+    }
+    const version = (nextPublicationVersion.get(exam.id) ?? 0) + 1;
+    const published = publishQuiz(exam, version, new Date().toISOString());
+    const assignment = assignedQuizService.assignQuiz({
+        id: 'assignment-' + crypto.randomUUID(),
+        groupId: 'demo-group-1', ownerId: params.ownerId, quiz: published,
+        opensAt: params.opensAt, closesAt: params.closesAt, maxAttempts: params.maxAttempts,
+    });
+    nextPublicationVersion.set(exam.id, version);
+    teacherAssignmentIds.push(assignment.id);
+    return {
+        id: assignment.id, title: published.title, version,
+        groupName: 'Synthetic demo students', opensAt: assignment.opensAt,
+        closesAt: assignment.closesAt, maxAttempts: assignment.maxAttempts,
+    };
+};
+export const getStudentDemoAssignments = async (userId: string) => {
+    await delay(50);
+    return assignedQuizService.listStudentAssignments(userId);
+};
+export const getStudentAssignedQuiz = async (assignmentId: string, userId: string) => {
+    await delay(50);
+    return assignedQuizService.getStudentQuiz(assignmentId, userId);
+};
+export const submitStudentAssignedQuiz = async (command: AssignedSubmission): Promise<ExamResult> => {
+    const result = assignedQuizService.submit(command);
+    const assignment = assignedQuizService.getTeacherAssignment(command.assignmentId, 'teacher-1');
+    if (!assignment) throw new Error('Demo assignment no longer available');
+    const snapshot: Exam = {
+        ...structuredClone(assignment.quizSnapshot),
+        questions: assignment.quizSnapshot.questions.map(q => structuredClone(q) as Question),
+    };
+    if (!assignedAttemptRecords.has(result.id)) {
+        assignedAttemptRecords.set(result.id, {result: structuredClone(result), examSnapshot: snapshot});
+    }
+    if (!mockExamResults.some(row => row.id === result.id)) mockExamResults.push(structuredClone(result));
+    return structuredClone(mockExamResults.find(row => row.id === result.id)!);
 };
 
 // Admin/Teacher APIs
