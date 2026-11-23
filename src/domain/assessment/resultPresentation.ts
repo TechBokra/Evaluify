@@ -2,7 +2,7 @@ import type { ExamResult } from '../../types.ts';
 import type { ItemScoreStatus } from './scoring.ts';
 
 export type DisplayStatus = 'final' | 'needs-review' | 'unverified-demo';
-export type DisplayItemStatus = ItemScoreStatus | 'unverified-demo';
+export type DisplayItemStatus = ItemScoreStatus | 'unverified-demo' | 'reviewed';
 
 /** Legacy seeded results have no evaluation audit and must never appear verified. */
 export function getDisplayStatus(result: Readonly<ExamResult>): DisplayStatus {

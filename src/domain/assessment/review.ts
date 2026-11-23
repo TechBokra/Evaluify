@@ -72,11 +72,13 @@ export function recordManualReview(previous: Readonly<ReviewCase>, command: Read
     throw new Error('Review is already finalized');
   }
   const result = copy(previous.result);
+  const items = result.itemScores;
+  if (!items) throw new Error('Missing review items');
   const seen = new Set<string>();
   for (const decision of command.decisions) {
     if (seen.has(decision.questionId)) throw new Error('Duplicate question in review');
     seen.add(decision.questionId);
-    const item = result.itemScores!.find(entry => entry.questionId === decision.questionId);
+    const item = items.find(entry => entry.questionId === decision.questionId);
     if (!item || item.status !== 'needs-review') {
       throw new Error('Question is not pending human review');
     }
@@ -88,10 +90,10 @@ export function recordManualReview(previous: Readonly<ReviewCase>, command: Read
     item.awardedPoints = decision.awardedPoints;
     item.status = 'reviewed';
   }
-  result.pendingReviewPoints = result.itemScores
+  result.pendingReviewPoints = items
     .filter(item => item.status === 'needs-review')
     .reduce((sum, item) => sum + item.maxPoints, 0);
-  result.score = result.itemScores.reduce((sum, item) => sum + item.awardedPoints, 0);
+  result.score = items.reduce((sum, item) => sum + item.awardedPoints, 0);
   result.gradingStatus = result.pendingReviewPoints > 0 ? 'needs-review' : 'final';
   const event: ReviewEvent = {
     id: command.id,
