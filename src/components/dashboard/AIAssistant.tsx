@@ -72,7 +72,7 @@ const AIAssistant: React.FC = () => {
 
         } catch (error) {
             console.error("Gemini API error:", error);
-            const errorMessage: Message = { sender: 'ai', text: "Sorry, I'm having trouble connecting right now." };
+            const errorMessage: Message = { sender: 'ai', text: "AI assistance is not enabled in this local prototype. No external AI service is connected." };
             setMessages(prev => {
                  const newMessages = [...prev];
                 // Update the last message (the AI's response placeholder) with an error

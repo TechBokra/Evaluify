@@ -12,6 +12,9 @@ const ai = {
     async generateContent(_request: GenerateContentParams): Promise<{ text?: string }> {
       throw new Error('Live AI is disabled for the Evaluify local technical prototype.');
     },
+    async *generateContentStream(_request: GenerateContentParams): AsyncGenerator<{ text: string }> {
+      throw new Error('Live AI is disabled for the Evaluify local technical prototype.');
+    },
   },
 };
 
