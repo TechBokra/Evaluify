@@ -58,11 +58,11 @@ const QuestionBankPage: React.FC<QuestionBankPageProps> = ({ pageTitle, descript
             if ('id' in questionData && 'ownerId' in questionData) {
                 const updatedQuestion = await updateQuestionInBank(questionData as Question);
                 setQuestions(prev => prev.map(q => q.id === updatedQuestion.id ? updatedQuestion : q));
-                addNotification("Question updated successfully!", "success");
+                addNotification("Question saved as draft — review and approve it again before publishing.", "success");
             } else {
                 const newQuestion = await addQuestionToBank({ ...questionData, ownerId });
                 setQuestions(prev => [...prev, newQuestion]);
-                addNotification("Question created successfully!", "success");
+                addNotification("Question created as draft — review its answer key before approving.", "success");
             }
             setIsModalOpen(false);
         } catch (error) {
